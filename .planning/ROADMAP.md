@@ -24,15 +24,23 @@
 
 **Goal:** Scrape job listings from major job boards (LinkedIn, Indeed, Glassdoor)
 
+**Plans:** 4 plans
+
 **Requirements:**
 - JOB-01: Scrape LinkedIn job listings
-- JOB-02: Scrape Indeed job listings  
+- JOB-02: Scrape Indeed job listings
 - JOB-03: Scrape Glassdoor job listings
 
 **Success Criteria:**
 1. Successfully retrieves job data from 3+ job boards
 2. Handles anti-scraping measures (rate limiting, user agents)
 3. Extracts job title, company, location, description, link
+
+Plans:
+- [ ] 01-01-PLAN.md — Foundation: types, base scraper, rate limiter
+- [ ] 01-02-PLAN.md — Indeed scraper: HTTP+Cheerio strategy
+- [ ] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
+- [ ] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
 
 ---
 
