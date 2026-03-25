@@ -37,7 +37,7 @@
 3. Extracts job title, company, location, description, link
 
 Plans:
-- [ ] 01-01-PLAN.md — Foundation: types, base scraper, rate limiter
+- [x] 01-01-PLAN.md — Foundation: types, base scraper, rate limiter (2026-03-25)
 - [ ] 01-02-PLAN.md — Indeed scraper: HTTP+Cheerio strategy
 - [ ] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
 - [ ] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
@@ -90,9 +90,9 @@ Plans:
 
 | ID | Description | Phase | Status |
 |----|-------------|-------|--------|
-| JOB-01 | Scrape LinkedIn | 1 | Pending |
-| JOB-02 | Scrape Indeed | 1 | Pending |
-| JOB-03 | Scrape Glassdoor | 1 | Pending |
+| JOB-01 | Scrape LinkedIn | 1 | In Progress |
+| JOB-02 | Scrape Indeed | 1 | In Progress |
+| JOB-03 | Scrape Glassdoor | 1 | In Progress |
 | JOB-04 | User profile schema | 2 | Pending |
 | JOB-05 | AI job matching | 2 | Pending |
 | JOB-06 | Gmail API integration | 3 | Pending |
