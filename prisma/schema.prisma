@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  skills          String[]
+  interests       String[]
+  location        String?
+  remoteOnly      Boolean  @default(false)
+  experienceLevel String?
+  minSalary       Int?
+  maxSalary       Int?
+  skillWeight     Float    @default(0.4)
+  interestWeight  Float    @default(0.3)
+  locationWeight  Float    @default(0.2)
+  salaryWeight    Float    @default(0.1)
+}
+
+model Job {
+  id          String   @id @default(uuid())
+  title       String
+  company     String
+  location    String?
+  description String?
+  url         String   @unique
+  salary      Int?
+  postedAt    DateTime?
+  scrapedAt   DateTime @default(now())
+  skills      String[]
+  category    String?
+}
