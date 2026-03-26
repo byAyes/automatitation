@@ -24,7 +24,7 @@
 
 **Goal:** Scrape job listings from major job boards (LinkedIn, Indeed, Glassdoor)
 
-**Plans:** 4 plans
+**Plans:** 5 plans
 
 **Requirements:**
 - JOB-01: Scrape LinkedIn job listings
@@ -41,6 +41,7 @@ Plans:
 - [x] 01-02-PLAN.md — Indeed scraper: HTTP+Cheerio strategy
 - [x] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
 - [x] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
+- [ ] 01-05-PLAN.md — Gap closure: Fix Puppeteer scraper data flow
 
 ---
 
