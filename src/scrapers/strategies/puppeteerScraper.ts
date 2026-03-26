@@ -50,10 +50,8 @@ export class PuppeteerScraper extends BaseScraper {
       // Wait for job listings to load
       await this.waitForJobs(page);
 
-      // Extract jobs using page.evaluate
-      const jobs = await page.evaluate(() => {
-        return [];
-      });
+    // Extract jobs using the extractJobs method
+    const jobs = await this.extractJobs(page);
 
       this.logger.info(`Extracted ${jobs.length} jobs`);
 
