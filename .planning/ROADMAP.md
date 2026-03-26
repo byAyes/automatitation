@@ -49,6 +49,8 @@ Plans:
 
 **Goal:** Filter and match jobs to user profile using AI
 
+**Plans:** 3 plans
+
 **Requirements:**
 - JOB-04: Create user profile schema (skills, interests, location)
 - JOB-05: Implement AI-powered job matching algorithm
@@ -56,6 +58,11 @@ Plans:
 **Success Criteria:**
 1. User can define skills and preferences
 2. Jobs are scored by relevance (>70% accuracy)
+
+Plans:
+- [ ] 02-01-PLAN.md — UserProfile schema + TypeScript types
+- [ ] 02-02-PLAN.md — AI matching algorithm with weighted scoring
+- [ ] 02-03-PLAN.md — API endpoint for matched jobs
 
 ---
 
