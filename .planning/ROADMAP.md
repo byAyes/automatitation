@@ -81,8 +81,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Gmail API integration with OAuth2 authentication
-- [ ] 03-02-PLAN.md — Email template and job digest formatting
+- [x] 03-01-PLAN.md — Gmail API integration with OAuth2 authentication (2026-03-26)
+- [x] 03-02-PLAN.md — Email template and job digest formatting (2026-03-26)
 
 ---
 
