@@ -31,15 +31,25 @@ model UserProfile {
 }
 
 model Job {
-  id          String   @id @default(uuid())
-  title       String
-  company     String
-  location    String?
-  description String?
-  url         String   @unique
-  salary      Int?
-  postedAt    DateTime?
-  scrapedAt   DateTime @default(now())
-  skills      String[]
-  category    String?
+id String @id @default(uuid())
+title String
+company String
+location String?
+description String?
+url String @unique
+salary Int?
+postedAt DateTime?
+scrapedAt DateTime @default(now())
+emailedAt DateTime?
+skills String[]
+category String?
+emailDigestId String?
+emailDigest EmailDigest? @relation(fields: [emailDigestId], references: [id])
+}
+
+model EmailDigest {
+id String @id @default(uuid())
+sentAt DateTime @default(now())
+jobCount Int
+jobs Job[]
 }

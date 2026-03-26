@@ -11,10 +11,10 @@ const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 // Set credentials if tokens are available
 if (process.env.GMAIL_ACCESS_TOKEN && process.env.GMAIL_REFRESH_TOKEN) {
-  oauth2Client.setCredentials({
-    access_token: process.env.GMAIL_ACCESS_TOKEN,
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-  });
+oauth2Client.setCredentials({
+access_token: process.env.GMAIL_ACCESS_TOKEN,
+refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+});
 }
 
 // Initialize Gmail API client
@@ -93,13 +93,14 @@ export async function sendEmail(
       .replace(/\//g, '_')
       .replace(/=+$/, '');
 
-    // Send via Gmail API
-    const response = await gmail.messages.send({
-      userId: 'me',
-      requestBody: {
-        raw: encodedEmail,
-      },
-    });
+// Send via Gmail API
+const gmailService = google.gmail({ version: 'v1', auth: oauth2Client });
+const response = await (gmailService as any).messages.send({
+userId: 'me',
+requestBody: {
+raw: encodedEmail,
+},
+});
 
     return {
       success: true,
