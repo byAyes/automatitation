@@ -41,7 +41,7 @@ Plans:
 - [x] 01-02-PLAN.md — Indeed scraper: HTTP+Cheerio strategy
 - [x] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
 - [x] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
-- [ ] 01-05-PLAN.md — Gap closure: Fix Puppeteer scraper data flow
+- [x] 01-05-PLAN.md — Gap closure: Fix Puppeteer scraper data flow
 
 ---
 
