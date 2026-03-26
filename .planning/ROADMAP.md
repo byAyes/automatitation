@@ -60,9 +60,9 @@ Plans:
 2. Jobs are scored by relevance (>70% accuracy)
 
 Plans:
-- [ ] 02-01-PLAN.md — UserProfile schema + TypeScript types
-- [ ] 02-02-PLAN.md — AI matching algorithm with weighted scoring
-- [ ] 02-03-PLAN.md — API endpoint for matched jobs
+- [x] 02-01-PLAN.md — UserProfile schema + TypeScript types (2026-03-26)
+- [x] 02-02-PLAN.md — AI matching algorithm with weighted scoring (2026-03-26)
+- [x] 02-03-PLAN.md — API endpoint for matched jobs (2026-03-26)
 
 ---
 
@@ -101,12 +101,12 @@ Plans:
 | JOB-01 | Scrape LinkedIn | 1 | In Progress |
 | JOB-02 | Scrape Indeed | 1 | In Progress |
 | JOB-03 | Scrape Glassdoor | 1 | In Progress |
-| JOB-04 | User profile schema | 2 | Pending |
-| JOB-05 | AI job matching | 2 | Pending |
+| JOB-04 | User profile schema | 2 | Complete |
+| JOB-05 | AI job matching | 2 | Complete |
 | JOB-06 | Gmail API integration | 3 | Pending |
 | JOB-07 | Email formatting | 3 | Pending |
 | JOB-08 | GitHub Actions workflow | 4 | Pending |
 | JOB-09 | Job history management | 4 | Pending |
 
 ---
-*Last updated: 2026-03-25 after roadmap creation*
+*Last updated: 2026-03-26*
