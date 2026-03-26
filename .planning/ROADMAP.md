@@ -78,6 +78,12 @@ Plans:
 1. Emails sent successfully via Gmail API
 2. Email contains job list with links in simple format
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Gmail API integration with OAuth2 authentication
+- [ ] 03-02-PLAN.md — Email template and job digest formatting
+
 ---
 
 ### Phase 4: Automation & Scheduling
