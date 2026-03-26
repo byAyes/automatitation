@@ -39,8 +39,8 @@
 Plans:
 - [x] 01-01-PLAN.md — Foundation: types, base scraper, rate limiter (2026-03-25)
 - [ ] 01-02-PLAN.md — Indeed scraper: HTTP+Cheerio strategy
-- [ ] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
-- [ ] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
+- [x] 01-03-PLAN.md — LinkedIn scraper: Puppeteer+Stealth strategy
+- [x] 01-04-PLAN.md — Glassdoor scraper + runner orchestration
 
 ---
 
