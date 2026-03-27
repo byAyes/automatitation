@@ -95,7 +95,7 @@ export async function sendEmail(
 
 // Send via Gmail API
 const gmailService = google.gmail({ version: 'v1', auth: oauth2Client });
-const response = await (gmailService as any).messages.send({
+const response = await gmailService.users.messages.send({
 userId: 'me',
 requestBody: {
 raw: encodedEmail,
