@@ -1,5 +1,6 @@
 import { Job, ScraperConfig, ScraperResult } from './types';
 import { rateLimiter } from './utils/rateLimiter';
+import { JSearchScraper } from './strategies/jsearch';
 import { IndeedScraper } from './strategies/indeed';
 import { LinkedInScraper } from './strategies/linkedin';
 import { GlassdoorScraper } from './strategies/glassdoor';
@@ -7,7 +8,7 @@ import { ComputrabajoScraper } from './strategies/computrabajo';
 
 /**
  * Scraper runner that orchestrates all job board scrapers
- * Executes scrapers sequentially with rate limiting
+ * Uses JSearch API as primary source, falls back to direct scraping
  */
 export class ScraperRunner {
   private config: ScraperConfig;
@@ -18,62 +19,79 @@ export class ScraperRunner {
   }
 
   /**
-   * Run all scrapers sequentially
-   * Each scraper failure is isolated and doesn't stop other scrapers
+   * Run all scrapers with JSearch API as primary source
+   * Falls back to direct scraping if API fails
    * @returns Promise resolving to array of all scraped jobs
    */
   async runAllScrapers(): Promise<Job[]> {
     this.allJobs = [];
-    
-    console.log('[ScraperRunner] Starting job scraping process...');
+
+    console.log('[ScraperRunner] Starting job search with JSearch API...');
     console.log(`[ScraperRunner] Query: ${this.config.query}`);
-    console.log(`[ScraperRunner] Max jobs per scraper: ${this.config.maxJobs || 'unlimited'}`);
+    console.log(`[ScraperRunner] Max jobs: ${this.config.maxJobs || 'unlimited'}`);
 
-// Define scrapers in order of execution
-const scrapers = [
-{ name: 'Indeed', scraper: new IndeedScraper(this.config) },
-{ name: 'LinkedIn', scraper: new LinkedInScraper(this.config) },
-{ name: 'Glassdoor', scraper: new GlassdoorScraper(this.config) },
-{ name: 'Computrabajo', scraper: new ComputrabajoScraper(this.config) },
-];
-
-    // Execute each scraper sequentially
-    for (const { name, scraper } of scrapers) {
-      try {
-        console.log(`\n[ScraperRunner] Starting ${name} scraper...`);
+    // Try JSearch API first (recommended - more reliable)
+    try {
+      const jsearch = new JSearchScraper(this.config);
+      const result = await jsearch.search(this.config);
+      
+      if (result.success && result.data) {
+        this.allJobs = result.data;
+        console.log(`[ScraperRunner] ✅ JSearch API: Found ${result.data.length} jobs`);
         
-        // Rate limit before each scraper
-        await rateLimiter.wait();
-        
-        // Run the scraper
-        const result = await scraper.scrape(this.config);
-        
-        if (result.success && result.data) {
-          this.allJobs.push(...result.data);
-          console.log(`[ScraperRunner] ${name}: Successfully scraped ${result.data.length} jobs`);
-        } else {
-          console.warn(`[ScraperRunner] ${name}: Failed - ${result.error || 'Unknown error'}`);
+        // If we got jobs from API, no need to scrape
+        if (result.data.length > 0) {
+          console.log(`[ScraperRunner] Completed. Total jobs: ${this.allJobs.length}`);
+          return this.allJobs;
         }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`[ScraperRunner] ${name}: Unhandled error - ${errorMessage}`);
-        // Continue to next scraper - don't let one failure stop all
       }
+    } catch (error) {
+      console.warn('[ScraperRunner] ⚠️ JSearch API failed, falling back to direct scraping');
     }
 
-    console.log(`\n[ScraperRunner] Completed. Total jobs collected: ${this.allJobs.length}`);
+    // Fallback: Direct scraping (if API fails or returns no results)
+    if (this.allJobs.length === 0) {
+      console.log('\n[ScraperRunner] Switching to direct scraping mode...');
+      
+      const scrapers = [
+        { name: 'Indeed', scraper: new IndeedScraper(this.config) },
+        { name: 'LinkedIn', scraper: new LinkedInScraper(this.config) },
+        { name: 'Glassdoor', scraper: new GlassdoorScraper(this.config) },
+        { name: 'Computrabajo', scraper: new ComputrabajoScraper(this.config) },
+      ];
+
+      for (const { name, scraper } of scrapers) {
+        try {
+          console.log(`\n[ScraperRunner] Starting ${name} scraper...`);
+          await rateLimiter.wait();
+          
+          const result = await scraper.scrape(this.config);
+          
+          if (result.success && result.data) {
+            this.allJobs.push(...result.data);
+            console.log(`[ScraperRunner] ${name}: Found ${result.data.length} jobs`);
+          } else {
+            console.warn(`[ScraperRunner] ${name}: Failed - ${result.error || 'Unknown error'}`);
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`[ScraperRunner] ${name}: Error - ${errorMessage}`);
+        }
+      }
+
+      console.log(`\n[ScraperRunner] Direct scraping completed. Total jobs: ${this.allJobs.length}`);
+    }
+
     return this.allJobs;
   }
 
   /**
    * Save jobs to JSON file
-   * @param outputPath - Path to save JSON file
    */
   async saveToJSON(outputPath: string): Promise<void> {
     const fs = await import('fs');
     const path = await import('path');
-    
-    // Ensure directory exists
+
     const dir = path.dirname(outputPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -84,27 +102,17 @@ const scrapers = [
     console.log(`[ScraperRunner] Jobs saved to ${outputPath}`);
   }
 
-  /**
-   * Get all collected jobs
-   * @returns Array of all scraped jobs
-   */
   getJobs(): Job[] {
     return this.allJobs;
   }
 
-  /**
-   * Clear all collected jobs
-   */
   clearJobs(): void {
     this.allJobs = [];
   }
 }
 
 /**
- * Main entry point for running all scrapers
- * @param config - Scraper configuration
- * @param outputPath - Optional path to save results
- * @returns Promise resolving to array of all scraped jobs
+ * Main entry point
  */
 export async function runScrapers(
   config: ScraperConfig,
@@ -112,11 +120,11 @@ export async function runScrapers(
 ): Promise<Job[]> {
   const runner = new ScraperRunner(config);
   const jobs = await runner.runAllScrapers();
-  
+
   if (outputPath) {
     await runner.saveToJSON(outputPath);
   }
-  
+
   return jobs;
 }
 
