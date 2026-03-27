@@ -2,15 +2,16 @@ import { Job, ScraperConfig, ScraperResult } from '../types';
 import { HttpScraper } from './httpScraper';
 
 /**
- * Indeed.com job scraper
- * Uses HTTP requests with Cheerio for HTML parsing
- */
+* Indeed.com job scraper
+* Uses HTTP requests with Cheerio for HTML parsing
+* Includes user-agent rotation and proper headers to avoid blocking
+*/
 export class IndeedScraper extends HttpScraper {
-  private readonly baseUrl = 'https://indeed.com';
+private readonly baseUrl = 'https://www.indeed.com';
 
-  constructor(config: ScraperConfig) {
-    super(config, 'IndeedScraper');
-  }
+constructor(config: ScraperConfig) {
+super(config, 'IndeedScraper');
+}
 
   /**
    * Scrape job listings from Indeed.com
@@ -76,13 +77,14 @@ export class IndeedScraper extends HttpScraper {
     }
   }
 
-  /**
-   * Build Indeed search URL
-   * @param config - Scraper configuration
-   * @returns Encoded search URL
-   */
-  private buildUrl(config: ScraperConfig): string {
-    const query = encodeURIComponent(config.query || '');
-    return `${this.baseUrl}/jobs?q=${query}&sort=date`;
-  }
+/**
+* Build Indeed search URL
+* @param config - Scraper configuration
+* @returns Encoded search URL with date filter (last 3 days)
+*/
+private buildUrl(config: ScraperConfig): string {
+const query = encodeURIComponent(config.query || '');
+// Sort by date and filter to last 3 days
+return `${this.baseUrl}/jobs?q=${query}&sort=date&fromage=3`;
+}
 }

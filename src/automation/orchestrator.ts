@@ -9,19 +9,40 @@ import type { Job as ScrapedJob } from '../scrapers/types';
  * Convert scraped job to database job format
  */
 function convertToDbJob(scraped: ScrapedJob) {
-  return {
-    id: scraped.id,
-    title: scraped.title,
-    company: scraped.company,
-    location: scraped.location || null,
-    description: scraped.description || null,
-    url: scraped.link,
-    salary: null,
-    postedAt: null,
-    scrapedAt: scraped.scrapedAt,
-    skills: [] as string[],
-    category: null,
-  };
+return {
+id: scraped.id,
+title: scraped.title,
+company: scraped.company,
+location: scraped.location || null,
+description: scraped.description || null,
+url: scraped.link,
+salary: null,
+postedAt: null,
+scrapedAt: scraped.scrapedAt,
+skills: [] as string[],
+category: null,
+};
+}
+
+/**
+ * Filter jobs from the last N days
+ * @param jobs - Array of jobs to filter
+ * @param days - Number of days (default: 3)
+ * @returns Jobs from the last N days
+ */
+function filterByDate(jobs: any[], days: number = 3): any[] {
+const cutoffDate = new Date();
+cutoffDate.setDate(cutoffDate.getDate() - days);
+
+return jobs.filter(job => {
+// If job has postedAt, use it
+if (job.postedAt) {
+const postedDate = new Date(job.postedAt);
+return postedDate >= cutoffDate;
+}
+// If no date, include it (assume recent)
+return true;
+});
 }
 
 /**
@@ -65,14 +86,20 @@ export async function executePipeline(): Promise<PipelineResult> {
     // Convert scraped jobs to database format
     const allJobs = scrapedJobs.map(convertToDbJob);
     
-    result.scraped = allJobs.length;
-    logger.success(`Scraped ${allJobs.length} jobs from all boards`);
+result.scraped = allJobs.length;
+logger.success(`Scraped ${allJobs.length} jobs from all boards`);
 
-    // Step 2: Filter for new jobs (not already emailed)
-    logger.info('Filtering for new jobs...');
-    const newJobs = await filterNewJobs(allJobs);
-    result.matched = newJobs.length;
-    logger.info(`Found ${newJobs.length} new jobs`);
+// Step 1.5: Filter jobs from last 3 days
+const daysBack = parseInt(process.env.JOB_DAYS_FILTER || '3', 10);
+logger.info(`Filtering jobs from last ${daysBack} days...`);
+const recentJobs = filterByDate(allJobs, daysBack);
+logger.info(`Found ${recentJobs.length} jobs from last ${daysBack} days`);
+
+// Step 2: Filter for new jobs (not already emailed)
+logger.info('Filtering for new jobs...');
+const newJobs = await filterNewJobs(recentJobs);
+result.matched = newJobs.length;
+logger.info(`Found ${newJobs.length} new jobs`);
 
     // Step 3: Send email digest if there are jobs
     if (newJobs.length > 0) {

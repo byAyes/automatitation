@@ -3,6 +3,7 @@ import { rateLimiter } from './utils/rateLimiter';
 import { IndeedScraper } from './strategies/indeed';
 import { LinkedInScraper } from './strategies/linkedin';
 import { GlassdoorScraper } from './strategies/glassdoor';
+import { ComputrabajoScraper } from './strategies/computrabajo';
 
 /**
  * Scraper runner that orchestrates all job board scrapers
@@ -28,12 +29,13 @@ export class ScraperRunner {
     console.log(`[ScraperRunner] Query: ${this.config.query}`);
     console.log(`[ScraperRunner] Max jobs per scraper: ${this.config.maxJobs || 'unlimited'}`);
 
-    // Define scrapers in order of execution
-    const scrapers = [
-      { name: 'Indeed', scraper: new IndeedScraper(this.config) },
-      { name: 'LinkedIn', scraper: new LinkedInScraper(this.config) },
-      { name: 'Glassdoor', scraper: new GlassdoorScraper(this.config) },
-    ];
+// Define scrapers in order of execution
+const scrapers = [
+{ name: 'Indeed', scraper: new IndeedScraper(this.config) },
+{ name: 'LinkedIn', scraper: new LinkedInScraper(this.config) },
+{ name: 'Glassdoor', scraper: new GlassdoorScraper(this.config) },
+{ name: 'Computrabajo', scraper: new ComputrabajoScraper(this.config) },
+];
 
     // Execute each scraper sequentially
     for (const { name, scraper } of scrapers) {
