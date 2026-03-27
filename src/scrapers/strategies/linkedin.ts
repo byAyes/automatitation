@@ -7,12 +7,12 @@ import { PuppeteerScraper } from './puppeteerScraper';
  * Note: LinkedIn has aggressive anti-bot measures; use responsibly
  */
 export class LinkedInScraper extends PuppeteerScraper {
-  private baseUrl = 'https://www.linkedin.com';
+private baseUrl = 'https://www.linkedin.com';
 
-  constructor(config: ScraperConfig) {
-    super(config);
-    this.logger = new (this as any).Logger('LinkedInScraper');
-  }
+constructor(config: ScraperConfig) {
+super(config);
+// Logger is initialized in parent class
+}
 
   /**
    * Build LinkedIn job search URL

@@ -2,7 +2,27 @@ import { logger } from '../lib/automation/logger';
 import { filterNewJobs, markJobsAsEmailed, cleanupOldJobs } from '../lib/automation/job-history';
 import { formatJobDigest } from '../lib/email/template';
 import { sendEmail } from '../lib/email/gmail';
-import type { Job } from '../types/job';
+import { runScrapers } from '../scrapers/index';
+import type { Job as ScrapedJob } from '../scrapers/types';
+
+/**
+ * Convert scraped job to database job format
+ */
+function convertToDbJob(scraped: ScrapedJob) {
+  return {
+    id: scraped.id,
+    title: scraped.title,
+    company: scraped.company,
+    location: scraped.location || null,
+    description: scraped.description || null,
+    url: scraped.link,
+    salary: null,
+    postedAt: null,
+    scrapedAt: scraped.scrapedAt,
+    skills: [] as string[],
+    category: null,
+  };
+}
 
 /**
  * Pipeline execution result
@@ -34,12 +54,19 @@ export async function executePipeline(): Promise<PipelineResult> {
   try {
     // Step 1: Scrape job boards
     logger.info('Starting job scraping...');
-    const allJobs: Job[] = [];
     
-    // TODO: Import and run scrapers from src/scrapers/index.ts
-    // For now, placeholder
-    logger.info(`Scraped ${allJobs.length} jobs from all boards`);
+    // Run scrapers from all job boards
+    const query = process.env.JOB_QUERY || 'software engineer';
+    const maxJobs = parseInt(process.env.MAX_JOBS_PER_SCRAPER || '10', 10);
+    
+    logger.info(`Scraping job boards for: "${query}" (max ${maxJobs} jobs per board)`);
+    const scrapedJobs = await runScrapers({ query, maxJobs });
+    
+    // Convert scraped jobs to database format
+    const allJobs = scrapedJobs.map(convertToDbJob);
+    
     result.scraped = allJobs.length;
+    logger.success(`Scraped ${allJobs.length} jobs from all boards`);
 
     // Step 2: Filter for new jobs (not already emailed)
     logger.info('Filtering for new jobs...');
