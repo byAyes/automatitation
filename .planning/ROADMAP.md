@@ -5,8 +5,8 @@
 
 ## Overview
 
-- **Total Phases:** 4
-- **Total Requirements:** 6
+- **Total Phases:** 6
+- **Total Requirements:** 16
 - **All v1 requirements covered:** ✓
 
 | # | Phase | Goal | Requirements | Success Criteria |
@@ -15,6 +15,8 @@
 | 2 | AI Job Matching | Filter and match jobs to user profile | JOB-04, JOB-05 | 2 |
 | 3 | Email Notifications | Send weekly digests via Gmail API | JOB-06, JOB-07 | 2 |
 | 4 | Automation & Scheduling | Run on GitHub Actions weekly | JOB-08, JOB-09 | 2 |
+| 5 | PDF Job Detection | Extract job postings from uploaded PDFs | PDF-01, PDF-02, PDF-03, PDF-04, PDF-05 | 5 |
+| 6 | CV Database & Auto-Update | Auto-extract skills from CVs and update profile | CV-01, CV-02, CV-03, CV-04, CV-05 | 5 |
 
 ---
 
@@ -98,21 +100,91 @@ Plans:
 1. Workflow runs automatically every week
 2. Only new jobs are included in each digest
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — GitHub Actions workflow setup
+- [ ] 04-02-PLAN.md — Job history management
+
+---
+
+### Phase 5: PDF Job Detection
+
+**Goal:** Extract job postings from uploaded PDFs
+
+**Plans:** 3 plans
+
+**Requirements:**
+- PDF-01: PDF upload and parsing
+- PDF-02: Job extraction from text
+- PDF-03: Integration with matching
+- PDF-04: Integration with email
+- PDF-05: Duplicate detection
+
+**Success Criteria:**
+1. User can upload PDF via API
+2. System extracts job postings with title, company, description
+3. Extracted jobs scored against user profile
+4. PDF jobs included in email digests
+5. No duplicate jobs from PDF vs scraping
+
+Plans:
+- [x] 05-01-PLAN.md — PDF parsing foundation (2026-03-28)
+- [x] 05-02-PLAN.md — Upload API & duplicate detection (2026-03-28)
+- [x] 05-03-PLAN.md — Integration with matching & email (2026-03-28)
+
+---
+
+### Phase 6: CV Database & Auto-Update Profile
+
+**Goal:** Auto-extract skills from CV uploads and update user profile
+
+**Plans:** 3 plans
+
+**Requirements:**
+- CV-01: Store CV uploads in database with versioning
+- CV-02: Auto-extract skills, experience, education from CV PDFs
+- CV-03: Update user profile automatically from CV data
+- CV-04: Use updated profile for job scraping/matching
+- CV-05: Track profile changes over time
+
+**Success Criteria:**
+1. User uploads CV PDF → system extracts skills/experience
+2. UserProfile is automatically updated with extracted data
+3. Job scraping uses updated profile for better matching
+4. CV versions are stored with timestamps
+5. User can view profile change history
+
+Plans:
+- [ ] 06-01-PLAN.md — CV upload API with versioning
+- [ ] 06-02-PLAN.md — CV parsing & auto-extraction
+- [ ] 06-03-PLAN.md — Profile history & integration
+
 ---
 
 ## Requirement Traceability
 
 | ID | Description | Phase | Status |
 |----|-------------|-------|--------|
-| JOB-01 | Scrape LinkedIn | 1 | In Progress |
-| JOB-02 | Scrape Indeed | 1 | In Progress |
-| JOB-03 | Scrape Glassdoor | 1 | In Progress |
+| JOB-01 | Scrape LinkedIn | 1 | Complete |
+| JOB-02 | Scrape Indeed | 1 | Complete |
+| JOB-03 | Scrape Glassdoor | 1 | Complete |
 | JOB-04 | User profile schema | 2 | Complete |
 | JOB-05 | AI job matching | 2 | Complete |
 | JOB-06 | Gmail API integration | 3 | Pending |
 | JOB-07 | Email formatting | 3 | Pending |
 | JOB-08 | GitHub Actions workflow | 4 | Pending |
 | JOB-09 | Job history management | 4 | Pending |
+| PDF-01 | PDF upload and parsing | 5 | Complete |
+| PDF-02 | Job extraction from text | 5 | Complete |
+| PDF-03 | Integration with matching | 5 | Complete |
+| PDF-04 | Integration with email | 5 | Complete |
+| PDF-05 | Duplicate detection | 5 | Complete |
+| CV-01 | Store CV uploads with versioning | 6 | Planned |
+| CV-02 | Auto-extract skills from CV | 6 | Planned |
+| CV-03 | Update profile from CV data | 6 | Planned |
+| CV-04 | Use profile for job matching | 6 | Planned |
+| CV-05 | Track profile changes | 6 | Planned |
 
 ---
-*Last updated: 2026-03-26*
+*Last updated: 2026-03-28*
