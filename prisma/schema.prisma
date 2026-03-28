@@ -13,21 +13,22 @@ datasource db {
 }
 
 model UserProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  skills          String[]
-  interests       String[]
-  location        String?
-  remoteOnly      Boolean  @default(false)
-  experienceLevel String?
-  minSalary       Int?
-  maxSalary       Int?
-  skillWeight     Float    @default(0.4)
-  interestWeight  Float    @default(0.3)
-  locationWeight  Float    @default(0.2)
-  salaryWeight    Float    @default(0.1)
+id String @id @default(uuid())
+userId String @unique
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+skills String[]
+interests String[]
+location String?
+remoteOnly Boolean @default(false)
+experienceLevel String?
+minSalary Int?
+maxSalary Int?
+skillWeight Float @default(0.4)
+interestWeight Float @default(0.3)
+locationWeight Float @default(0.2)
+salaryWeight Float @default(0.1)
+cvs CV[]
 }
 
 model Job {
@@ -52,4 +53,23 @@ id String @id @default(uuid())
 sentAt DateTime @default(now())
 jobCount Int
 jobs Job[]
+}
+
+model CV {
+id String @id @default(uuid())
+userId String
+version Int
+fileUrl String
+fileName String
+fileSize Int
+uploadedAt DateTime @default(now())
+skills String[]
+experience String[]
+education String[]
+rawText String?
+status String @default("pending")
+user UserProfile @relation(fields: [userId], references: [userId])
+
+@@unique([userId, version])
+@@index([userId])
 }
