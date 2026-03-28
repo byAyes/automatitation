@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(yamllint .github/workflows/weekly-job-email.yml)",
+      "Bash(git checkout:*)",
+      "Bash(sed -i '/run: npm ci/a    - name: Generate Prisma client      run: npx prisma generate' .github/workflows/weekly-job-email.yml)",
+      "Bash(sed -n '28,34p' .github/workflows/weekly-job-email.yml)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "Bash(git reset:*)",
+      "Skill(gsd:review)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Skill(gsd:plan-phase)"
+    ]
+  }
+}

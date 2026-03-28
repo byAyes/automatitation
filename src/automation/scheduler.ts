@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { logger } from '../lib/automation/logger';
 import { executePipeline } from './orchestrator';
 
@@ -7,10 +9,10 @@ import { executePipeline } from './orchestrator';
  */
 export async function runAutomation(): Promise<void> {
   logger.success('Starting Job Email Automation Pipeline');
-  
+
   try {
     const result = await executePipeline();
-    
+
     logger.success('Pipeline completed successfully');
     logger.info('Summary:', {
       scraped: result.scraped,
