@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '../../../../generated/prisma';
 import { calculateYearsOfExperience, inferExperienceLevel } from '../../../../lib/cv/skillExtractor';
+import { trackProfileChange } from '../../../../lib/cv/profileHistory';
 
 const prisma = new PrismaClient();
 
@@ -105,17 +106,39 @@ export async function POST(request: NextRequest) {
     const yearsOfExperience = calculateYearsOfExperience(experienceEntries);
     const experienceLevel = inferExperienceLevel(yearsOfExperience);
 
-    // Update experience level if different
-    if (profile.experienceLevel !== experienceLevel) {
-      updatedFields.push('experienceLevel');
-      profile = await prisma.userProfile.update({
-        where: { userId },
-        data: { experienceLevel },
-      });
-    }
+// Update experience level if different
+if (profile.experienceLevel !== experienceLevel) {
+updatedFields.push('experienceLevel');
+profile = await prisma.userProfile.update({
+where: { userId },
+data: { experienceLevel },
+});
 
-    // Extract location from most recent experience if available
-    // (This would require more sophisticated parsing - simplified for now)
+// Track experience level change
+await trackProfileChange({
+userId,
+changeType: 'experience_level_updated',
+previousValue: profile.experienceLevel,
+newValue: experienceLevel,
+source: 'cv_upload',
+cvId,
+});
+}
+
+// Track skills change
+if (cv.skills.length > 0 && updatedFields.includes('skills')) {
+await trackProfileChange({
+userId,
+changeType: 'skills_added',
+previousValue: profile.skills,
+newValue: cv.skills,
+source: 'cv_upload',
+cvId,
+});
+}
+
+// Extract location from most recent experience if available
+// (This would require more sophisticated parsing - simplified for now)
 
     return NextResponse.json({
       success: true,

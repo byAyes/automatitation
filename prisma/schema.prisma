@@ -73,3 +73,17 @@ user UserProfile @relation(fields: [userId], references: [userId])
 @@unique([userId, version])
 @@index([userId])
 }
+
+model ProfileChangeLog {
+id String @id @default(uuid())
+userId String
+changeType String
+previousValue String?
+newValue String
+source String
+cvId String?
+createdAt DateTime @default(now())
+
+@@index([userId])
+@@index([createdAt])
+}
