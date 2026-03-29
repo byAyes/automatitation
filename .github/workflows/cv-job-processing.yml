@@ -1,0 +1,113 @@
+name: Process CV and Job Matching
+
+on:
+  # Ejecutar automáticamente cada lunes a las 9 AM
+  schedule:
+    - cron: '0 9 * * 1'
+  
+  # O ejecutar manualmente desde GitHub Actions
+  workflow_dispatch:
+    inputs:
+      userId:
+        description: 'User ID para procesar CV'
+        required: false
+        default: '1'
+      
+  # Ejecutar cuando se suba un CV a la carpeta cvs/
+  push:
+    paths:
+      - 'cvs/**/*.pdf'
+
+jobs:
+  process-cv:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: job_automation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/job_automation
+      NODE_ENV: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+
+      - name: Process latest CV uploads
+        run: |
+          npx ts-node scripts/process-cv-uploads.ts
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Auto-update profiles from CVs
+        run: |
+          npx ts-node scripts/auto-update-profiles.ts
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Run job scraping with updated profiles
+        run: |
+          npx ts-node scripts/scrape-jobs.ts
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Match jobs to updated profiles
+        run: |
+          npx ts-node scripts/match-jobs.ts
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Send email digests
+        run: |
+          npx ts-node scripts/send-email-digest.ts
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+
+      - name: Upload workflow logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-logs
+          path: |
+            logs/
+            *.log
+
+  cleanup:
+    needs: process-cv
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Cleanup old CV files
+        run: |
+          echo "Cleaning up old CV versions..."
+          # Eliminar CVs antiguos (opcional, mantener últimas 3 versiones)
+          npx ts-node scripts/cleanup-old-cvs.ts || true
