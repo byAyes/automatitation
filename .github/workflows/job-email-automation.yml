@@ -1,0 +1,52 @@
+name: Weekly Job Email Automation
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC (5 AM EST, 2 AM PST)
+    - cron: '0 9 * * 1'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  send-job-digest:
+    runs-on: ubuntu-latest
+    
+    env:
+      # Email Provider Configuration
+      EMAIL_PROVIDER: resend
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+      GMAIL_RECIPIENT: ${{ secrets.GMAIL_RECIPIENT }}
+      
+      # Job Search Configuration
+      JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
+      
+      # AI Matching Configuration
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run job automation
+        run: npm run automate
+        
+      - name: Upload job history (if exists)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job-history
+          path: |
+            data/job-history.json
+            data/log.txt
+          retention-days: 30
