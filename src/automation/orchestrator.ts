@@ -1,7 +1,7 @@
 import { logger } from '../lib/automation/logger';
 import { filterNewJobs, markJobsAsEmailed, cleanupOldJobs } from '../lib/automation/job-history';
 import { formatJobDigest } from '../lib/email/template';
-import { sendEmail } from '../lib/email/gmail';
+import { sendEmail } from "../lib/email"';
 import { runScrapers } from '../scrapers/index';
 import type { Job as ScrapedJob } from '../scrapers/types';
 

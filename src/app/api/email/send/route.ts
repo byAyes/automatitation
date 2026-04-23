@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendEmail } from '../../../../lib/email/gmail';
+import { sendEmail } from "../../../../lib/email"';
 
 /**
  * POST handler - Send an email
