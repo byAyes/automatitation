@@ -18,26 +18,27 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'scrapers/requirements.txt'
 
-    - name: Install Node dependencies
-      run: npm ci
+      - name: Install Node dependencies
+        run: npm ci
 
-    - name: Install Python dependencies
-      run: pip install -r scrapers/requirements.txt
+      - name: Install Python dependencies
+        run: pip install -r scrapers/requirements.txt
       
       - name: Run automation
         run: npm run automate
