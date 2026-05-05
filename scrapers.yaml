@@ -1,0 +1,26 @@
+scrapers:
+  linkedin:
+    enabled: true
+    module: scrapers.linkedin
+    class: LinkedInScraper
+    max_jobs: 10
+    rate_limit_ms: 5000
+    base_url: "https://www.linkedin.com/jobs/search"
+    location: ""
+
+  glassdoor:
+    enabled: true
+    module: scrapers.glassdoor
+    class: GlassdoorScraper
+    max_jobs: 10
+    rate_limit_ms: 5000
+    base_url: "https://www.glassdoor.com/Job/jobs.htm"
+
+  computrabajo:
+    enabled: true
+    module: scrapers.computrabajo
+    class: ComputrabajoScraper
+    max_jobs: 10
+    rate_limit_ms: 5000
+  base_url: "https://co.computrabajo.com"
+  country: "co"

@@ -20,6 +20,10 @@ export async function runAutomation(): Promise<void> {
       sent: result.sent,
       cleaned: result.cleaned,
     });
+
+    if (result.scraperStats?.length) {
+      logger.scraperSummary(result.scraperStats);
+    }
   } catch (error) {
     logger.error('Pipeline failed', error instanceof Error ? error : undefined);
     process.exit(1);
