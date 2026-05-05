@@ -37,3 +37,28 @@ export interface ScraperResult<T = Job[]> {
 export interface Scraper {
   scrape(config: ScraperConfig): Promise<ScraperResult>;
 }
+
+/**
+ * Configuration for Python subprocess scrapers
+ * Loaded from scrapers.yaml
+ */
+export interface PythonScraperConfig {
+  name: string;
+  module: string;
+  className: string;
+  enabled: boolean;
+  maxJobs: number;
+  rateLimitMs: number;
+  extra?: Record<string, any>;
+}
+
+/**
+ * Per-scraper execution stats
+ */
+export interface ScraperStats {
+  scraper: string;
+  success: boolean;
+  jobCount: number;
+  duration: number;
+  error?: string;
+}

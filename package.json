@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "automate": "set DOTENV_CONFIG_PATH=.env && tsx src/automation/scheduler.ts"
   },
   "keywords": [],
@@ -19,18 +20,17 @@
     "dotenv": "^17.3.1",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
+    "js-yaml": "^4.1.0",
     "next": "^16.2.1",
     "nodemailer": "^8.0.5",
     "pdf-parse": "^2.4.5",
     "prisma": "^7.5.0",
-    "puppeteer": "^24.40.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "typescript": "^6.0.2"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.5.0",
     "tsx": "^4.19.2"
   }

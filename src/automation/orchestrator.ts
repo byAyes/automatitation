@@ -2,8 +2,8 @@ import { logger } from '../lib/automation/logger';
 import { filterNewJobs, markJobsAsEmailed, cleanupOldJobs } from '../lib/automation/job-history';
 import { formatJobDigest } from '../lib/email/template';
 import { sendEmail } from '../lib/email';
-import { runScrapers } from '../scrapers/index';
-import type { Job as ScrapedJob } from '../scrapers/types';
+import { ScraperRunner } from '../scrapers/index';
+import type { Job as ScrapedJob, ScraperStats } from '../scrapers/types';
 
 /**
  * Convert scraped job to database job format
@@ -53,6 +53,7 @@ interface PipelineResult {
   matched: number;
   sent: number;
   cleaned: number;
+  scraperStats: ScraperStats[];
 }
 
 /**
@@ -70,6 +71,7 @@ export async function executePipeline(): Promise<PipelineResult> {
     matched: 0,
     sent: 0,
     cleaned: 0,
+    scraperStats: [],
   };
 
   try {
@@ -80,10 +82,16 @@ export async function executePipeline(): Promise<PipelineResult> {
     const query = process.env.JOB_QUERY || 'software engineer';
     const maxJobs = parseInt(process.env.MAX_JOBS_PER_SCRAPER || '10', 10);
     
-    logger.info(`Scraping job boards for: "${query}" (max ${maxJobs} jobs per board)`);
-    const scrapedJobs = await runScrapers({ query, maxJobs });
-    
-    // Convert scraped jobs to database format
+  logger.info(`Scraping job boards for: "${query}" (max ${maxJobs} jobs per board)`);
+
+  const runner = new ScraperRunner({ query, maxJobs });
+  const scrapedJobs = await runner.runAllScrapers();
+
+  // Capture per-scraper stats
+  result.scraperStats = runner.getStats();
+  logger.scraperSummary(result.scraperStats);
+
+  // Convert scraped jobs to database format
     const allJobs = scrapedJobs.map(convertToDbJob);
     
 result.scraped = allJobs.length;
