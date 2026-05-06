@@ -60,31 +60,31 @@ jobs:
 
       - name: Process latest CV uploads
         run: |
-          npx ts-node scripts/process-cv-uploads.ts
+          npx tsx scripts/process-cv-uploads.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Auto-update profiles from CVs
         run: |
-          npx ts-node scripts/auto-update-profiles.ts
+          npx tsx scripts/auto-update-profiles.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run job scraping with updated profiles
         run: |
-          npx ts-node scripts/scrape-jobs.ts
+          npx tsx scripts/scrape-jobs.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Match jobs to updated profiles
         run: |
-          npx ts-node scripts/match-jobs.ts
+          npx tsx scripts/match-jobs.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Send email digests
         run: |
-          npx ts-node scripts/send-email-digest.ts
+          npx tsx scripts/send-email-digest.ts
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
@@ -110,4 +110,4 @@ jobs:
         run: |
           echo "Cleaning up old CV versions..."
           # Eliminar CVs antiguos (opcional, mantener últimas 3 versiones)
-          npx ts-node scripts/cleanup-old-cvs.ts || true
+          npx tsx scripts/cleanup-old-cvs.ts || true
