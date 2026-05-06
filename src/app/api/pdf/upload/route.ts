@@ -5,11 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { parsePDF } from '../../../lib/pdf/pdfParser';
-import { extractJobsFromText } from '../../../lib/pdf/jobExtractor';
-import { isDuplicate } from '../../../lib/pdf/duplicateDetector';
-import { prisma } from '../../../lib/prisma';
-import { ExtractedJob } from '../../../types/pdf';
+import { parsePDF } from '@/lib/pdf/pdfParser';
+import { extractJobsFromText } from '@/lib/pdf/jobExtractor';
+import { isDuplicate } from '@/lib/pdf/duplicateDetector';
+import { prisma } from '@/lib/prisma';
+import { ExtractedJob } from '@/types/pdf';
 
 /**
  * POST handler for PDF upload

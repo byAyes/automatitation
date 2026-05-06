@@ -1,5 +1,5 @@
-import { MatchResult, Matcher } from './types';
-import { Job } from '../../../types/job';
+import type { MatchResult, Matcher } from './types';
+import type { Job } from '../../../types/job';
 
 let matcherInstance: Matcher | null = null;
 let matcherInit: Promise<Matcher> | null = null;
@@ -70,4 +70,4 @@ export async function calculateMatchScore(job: Job, userInterests: string[]): Pr
   return matcher.calculateMatchScore(job, userInterests);
 }
 
-export { MatchResult } from './types';
+export type { MatchResult } from './types';

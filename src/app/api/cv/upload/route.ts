@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { parsePDF } from '../../../lib/pdf/pdfParser';
-import type { CVUploadResult } from '../../../types/cv';
+import { parsePDF } from '@/lib/pdf/pdfParser';
+import type { CVUploadResult } from '@/types/cv';
 
 /**
  * POST /api/cv/upload

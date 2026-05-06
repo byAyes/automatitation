@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../lib/prisma';
-import { scoreAndSortJobs } from '../../matching/scorer';
-import { Job } from '../../types/job';
-import { UserProfile } from '../../types/user-profile';
+import { prisma } from '@/lib/prisma';
+import { scoreAndSortJobs } from '@/matching/scorer';
+import { Job } from '@/types/job';
+import { UserProfile } from '@/types/user-profile';
 
 /**
  * GET handler for matching jobs

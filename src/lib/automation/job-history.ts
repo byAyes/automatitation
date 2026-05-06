@@ -18,7 +18,7 @@ export async function filterNewJobs(jobs: Job[]): Promise<Job[]> {
     });
 
     const emailedUrlSet = new Set(
-      existingUrls.filter(j => j.emailedAt !== null).map(j => j)
+      existingUrls.filter(j => j.emailedAt !== null).map(j => j.url)
     );
     const existingUrlSet = new Set(existingUrls.map(j => j.url));
 

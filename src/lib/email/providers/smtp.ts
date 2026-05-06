@@ -15,7 +15,7 @@ export class SMTPProvider {
 
   constructor(config: SMTPConfig) {
     this.config = config;
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
       secure: config.port === 465, // true for port 465, false for other ports

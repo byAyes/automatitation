@@ -17,25 +17,25 @@ async function scrapeJobs() {
 
     console.log(`Found ${users.length} users with updated profiles`);
 
-    const runner = new ScraperRunner();
-    const queries = [query];
+  const queries = [query];
 
-    for (const interest of users.flatMap(u => u.interests || []).slice(0, 5)) {
-      if (!queries.includes(interest)) queries.push(interest);
+  for (const interest of users.flatMap(u => u.interests || []).slice(0, 5)) {
+    if (!queries.includes(interest)) queries.push(interest);
+  }
+
+  let totalScraped = 0;
+
+  for (const q of queries.slice(0, 3)) {
+    console.log(`Scraping query: "${q}" (max ${maxJobs})`);
+    try {
+      const runner = new ScraperRunner({ query: q, maxJobs });
+      const jobs = await runner.runAllScrapers();
+      totalScraped += jobs.length;
+      console.log(`Scraped ${jobs.length} jobs for "${q}"`);
+    } catch (error) {
+      console.error(`Failed to scrape "${q}":`, error);
     }
-
-    let totalScraped = 0;
-
-    for (const q of queries.slice(0, 3)) {
-      console.log(`Scraping query: "${q}" (max ${maxJobs})`);
-      try {
-        const jobs = await runner.run({ query: q, maxJobs });
-        totalScraped += jobs.length;
-        console.log(`Scraped ${jobs.length} jobs for "${q}"`);
-      } catch (error) {
-        console.error(`Failed to scrape "${q}":`, error);
-      }
-    }
+  }
 
     console.log(`Scraping complete: ${totalScraped} total jobs`);
   } catch (error) {

@@ -4,7 +4,7 @@
  * Detects sections: Skills, Experience, Education
  */
 
-import pdfParse from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 import type { CVParsedResult } from '../../types/cv';
 
 /**
@@ -15,7 +15,7 @@ import type { CVParsedResult } from '../../types/cv';
 export async function parseCV(pdfBuffer: Buffer): Promise<CVParsedResult> {
   try {
     // Parse PDF using pdf-parse
-    const data = await pdfParse(pdfBuffer);
+    const data = await (pdfParse as any).default(pdfBuffer);
     const rawText = data.text;
 
     // Clean and normalize text
