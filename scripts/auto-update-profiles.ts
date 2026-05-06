@@ -55,61 +55,61 @@ async function autoUpdateProfiles() {
           continue;
         }
 
-        // Extraer skills
-        const skills = extractSkills(cvData.text || '');
-        
-        // Actualizar perfil del usuario
-        const updateData: any = {};
-        
-        // Agregar skills (sin duplicados)
-        if (skills.length > 0 && cv.user.skills) {
-          const existingSkills = cv.user.skills || [];
-          const newSkills = skills.filter(
-            skill => !existingSkills.some(
-              existing => existing.toLowerCase() === skill.toLowerCase()
-            )
-          );
-          
-          if (newSkills.length > 0) {
-            updateData.skills = [...existingSkills, ...newSkills];
-            console.log(`✅ Added ${newSkills.length} new skills: ${newSkills.join(', ')}`);
-            
-            // Track change
-            await trackProfileChange(
-              cv.userId,
-              'skills',
-              existingSkills,
-              updateData.skills,
-              'cv_upload',
-              cv.id
-            );
-          }
-        }
+    // Extraer skills del texto completo y de la sección de skills
+    const skillsFromFull = extractSkills(cvData.rawText || '');
+    const skillsFromSection = cvData.sections.skills ? extractSkills(cvData.sections.skills) : [];
+    const skills = [...new Set([...skillsFromFull, ...skillsFromSection])];
 
-        // Inferir experiencia
-        if (cvData.experience && cvData.experience.length > 0) {
-          const yearsOfExperience = calculateYearsOfExperience(cvData.experience);
-          if (yearsOfExperience > 0) {
-            updateData.experienceLevel = inferExperienceLevel(yearsOfExperience);
-            console.log(`✅ Inferred experience level: ${updateData.experienceLevel}`);
-            
-            await trackProfileChange(
-              cv.userId,
-              'experienceLevel',
-              cv.user.experienceLevel,
-              updateData.experienceLevel,
-              'cv_upload',
-              cv.id
-            );
-          }
-        }
+    // Actualizar perfil del usuario
+    const updateData: any = {};
 
-        // Actualizar intereses si se extrajo información relevante
-        if (cvData.skills && cvData.skills.length > 0 && !updateData.interests) {
-          // Usar skills como intereses si no hay intereses
-          updateData.interests = cvData.skills.slice(0, 5);
-          console.log(`✅ Updated interests from CV skills`);
-        }
+    // Agregar skills (sin duplicados)
+    if (skills.length > 0) {
+      const existingSkills: string[] = cv.user.skills || [];
+      const newSkills = skills.filter(
+        skill => !existingSkills.some(
+          existing => existing.toLowerCase() === skill.toLowerCase()
+        )
+      );
+
+      if (newSkills.length > 0) {
+        updateData.skills = [...existingSkills, ...newSkills];
+        console.log(`✅ Added ${newSkills.length} new skills: ${newSkills.join(', ')}`);
+
+        await trackProfileChange({
+          userId: cv.userId,
+          changeType: 'skills',
+          previousValue: existingSkills,
+          newValue: updateData.skills,
+          source: 'cv_upload',
+          cvId: cv.id,
+        });
+      }
+    }
+
+    // Inferir experiencia desde la sección de experiencia del CV
+    if (cvData.sections.experience) {
+      const yearsOfExperience = calculateYearsOfExperience(cvData.sections.experience as any);
+      if (yearsOfExperience > 0) {
+        updateData.experienceLevel = inferExperienceLevel(yearsOfExperience);
+        console.log(`✅ Inferred experience level: ${updateData.experienceLevel}`);
+
+        await trackProfileChange({
+          userId: cv.userId,
+          changeType: 'experienceLevel',
+          previousValue: cv.user.experienceLevel,
+          newValue: updateData.experienceLevel,
+          source: 'cv_upload',
+          cvId: cv.id,
+        });
+      }
+    }
+
+    // Actualizar intereses si se extrajo información relevante
+    if (skills.length > 0 && !updateData.interests) {
+      updateData.interests = skills.slice(0, 5);
+      console.log(`✅ Updated interests from CV skills`);
+    }
 
         // Aplicar actualizaciones
         if (Object.keys(updateData).length > 0) {

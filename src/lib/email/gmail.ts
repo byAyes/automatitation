@@ -47,7 +47,7 @@ export async function exchangeCodeForTokens(code: string): Promise<{
   oauth2Client.setCredentials(tokens);
   return {
     accessToken: tokens.access_token!,
-    refreshToken: tokens.refresh_token || null,
+    refreshToken: tokens.refresh_token ?? null,
   };
 }
 
@@ -104,7 +104,7 @@ raw: encodedEmail,
 
     return {
       success: true,
-      messageId: response.data.id,
+      messageId: response.data.id ?? undefined,
     };
   } catch (error) {
     console.error('Failed to send email:', error);

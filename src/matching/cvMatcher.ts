@@ -6,7 +6,7 @@
 import { prisma } from '../lib/prisma';
 import { scoreAndSortJobs } from './scorer';
 import { Job } from '../types/job';
-import { UserProfile } from '../types/user-profile';
+import { UserProfile, ExperienceLevel } from '../types/user-profile';
 
 /**
  * Match jobs to a user's CV profile
@@ -49,11 +49,13 @@ export async function matchJobsToCVProfile(
     const profile: UserProfile = {
       id: userProfile?.id || 'cv-profile',
       userId: cv.userId,
+      createdAt: userProfile?.createdAt ?? new Date(),
+      updatedAt: userProfile?.updatedAt ?? new Date(),
       skills: cvProfile.skills || [],
       interests: userProfile?.interests || [],
       location: cvProfile.location || userProfile?.location || null,
       remoteOnly: userProfile?.remoteOnly || false,
-      experienceLevel: cvProfile.experienceLevel || userProfile?.experienceLevel || null,
+      experienceLevel: (cvProfile.experienceLevel || userProfile?.experienceLevel || null) as ExperienceLevel | null,
       minSalary: userProfile?.minSalary || null,
       maxSalary: userProfile?.maxSalary || null,
       skillWeight: userProfile?.skillWeight || 0.4,
@@ -102,7 +104,7 @@ function calculateYearsFromExperience(experience: string[]): number {
 /**
  * Infer experience level from years
  */
-function inferExperienceLevel(years: number): string {
+function inferExperienceLevel(years: number): ExperienceLevel {
   if (years < 2) {
     return 'junior';
   } else if (years < 5) {
