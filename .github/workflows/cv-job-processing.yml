@@ -1,20 +1,16 @@
 name: Process CV and Job Matching
 
 on:
-  # Ejecutar automáticamente cada lunes a las 9 AM
   schedule:
     - cron: '0 9 * * 1'
-  
-  # O ejecutar manualmente desde GitHub Actions
   workflow_dispatch:
     inputs:
       userId:
         description: 'User ID para procesar CV'
         required: false
         default: '1'
-      
-  # Ejecutar cuando se suba un CV a la carpeta cvs/
   push:
+    branches: [main]
     paths:
       - 'cvs/**/*.pdf'
 
@@ -104,9 +100,6 @@ jobs:
     needs: process-cv
     runs-on: ubuntu-latest
     if: always()
-
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/job_automation
 
     steps:
       - uses: actions/checkout@v4
