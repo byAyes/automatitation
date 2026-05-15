@@ -115,3 +115,33 @@ export async function cleanupOldJobs(retentionMonths: number = 3): Promise<numbe
     return 0;
   }
 }
+
+/**
+ * Delete jobs that were emailed more than N days ago, keeping DB lean
+ * @param retentionDays Days to retain emailed jobs (default: 7)
+ * @returns Number of jobs deleted
+ */
+export async function cleanupEmailedJobs(retentionDays: number = 7): Promise<number> {
+  try {
+    if (retentionDays <= 0) {
+      const result = await prisma.job.deleteMany({
+        where: { emailedAt: { not: null } },
+      });
+      return result.count;
+    }
+
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+    const result = await prisma.job.deleteMany({
+      where: {
+        emailedAt: { not: null, lt: cutoffDate },
+      },
+    });
+
+    return result.count;
+  } catch (error) {
+    console.error('Error cleaning up emailed jobs:', error);
+    return 0;
+  }
+}

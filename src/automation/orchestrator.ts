@@ -1,5 +1,5 @@
 import { logger } from '../lib/automation/logger';
-import { filterNewJobs, saveNewJobs, markJobsAsEmailed, cleanupOldJobs } from '../lib/automation/job-history';
+import { filterNewJobs, saveNewJobs, markJobsAsEmailed, cleanupEmailedJobs, cleanupOldJobs } from '../lib/automation/job-history';
 import { formatJobDigest } from '../lib/email/template';
 import type { ProfileInfo } from '../lib/email/template';
 import { sendEmail } from '../lib/email';
@@ -85,8 +85,9 @@ interface PipelineResult {
  * 2. Filter for new jobs
  * 3. Match jobs against user profile
  * 4. Send email digest
- * 5. Mark jobs as emailed
- * 6. Clean up old jobs
+ * 5. Mark jobs as emailed (with DB UUIDs)
+ * 6. Clean up emailed jobs older than 7 days
+ * 7. Safety net: clean up any jobs older than 1 month
  *
  * @param profile Optional extracted CV profile for email personalization
  */
@@ -218,9 +219,14 @@ export async function executePipeline(profile?: ProfileInfo): Promise<PipelineRe
       logger.info('No new jobs to send');
     }
 
-    // Step 5: Clean up old jobs
-    logger.info('Cleaning up old jobs...');
-    result.cleaned = await cleanupOldJobs(3); // 3 months retention
+    // Step 5: Clean up emailed jobs older than 7 days to keep DB lean
+    logger.info('Running DB cleanup (emailed >7d + orphaned >1mo)...');
+    const cleaned = await cleanupEmailedJobs(7);
+
+    // Safety net: clean up any jobs (emailed or not) older than 1 month
+    const oldCleaned = await cleanupOldJobs(1);
+    result.cleaned = cleaned + oldCleaned;
+    logger.info(`Cleaned up ${result.cleaned} old jobs (${cleaned} emailed, ${oldCleaned} orphaned)`);
 
     return result;
   } catch (error) {
