@@ -146,12 +146,12 @@ export async function executePipeline(): Promise<PipelineResult> {
         text,
         undefined, // from (default)
         html,      // html body
-        'juanesteban2045@gmail.com' // CC
+        process.env.EMAIL_CC || undefined // CC (optional, via EMAIL_CC env var)
       );
 
       if (emailResult.success) {
         result.sent = newJobs.length;
-        logger.success(`Sent email with ${result.sent} jobs (CC: juanesteban2045@gmail.com)`);
+        logger.success(`Sent email with ${result.sent} jobs${process.env.EMAIL_CC ? ` (CC: ${process.env.EMAIL_CC})` : ''}`);
         
         // Step 4: Mark jobs as emailed
         await markJobsAsEmailed(newJobs.map(job => job.id));
