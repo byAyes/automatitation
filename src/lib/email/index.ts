@@ -3,32 +3,47 @@ import { sendEmail as sendGmailEmail } from './gmail';
 import { SendGridProvider } from './providers/sendgrid';
 import { SMTPProvider } from './providers/smtp';
 import { ResendProvider } from './providers/resend';
+import type { SendGridProvider as SendGridProviderType } from './providers/sendgrid';
+import type { SMTPProvider as SMTPProviderType } from './providers/smtp';
+import type { ResendProvider as ResendProviderType } from './providers/resend';
 
-const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'gmail';
+// Lazy providers — initialized on first use so env vars are available
+let _sendGridProvider: SendGridProviderType | null = null;
+let _smtpProvider: SMTPProviderType | null = null;
+let _resendProvider: ResendProviderType | null = null;
 
-const sendGridProvider = process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL 
-  ? new SendGridProvider({
+function getSendGridProvider(): SendGridProviderType | null {
+  if (!_sendGridProvider && process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    _sendGridProvider = new SendGridProvider({
       apiKey: process.env.SENDGRID_API_KEY,
       fromEmail: process.env.SENDGRID_FROM_EMAIL,
-    })
-  : null;
+    });
+  }
+  return _sendGridProvider;
+}
 
-const smtpProvider = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD
-  ? new SMTPProvider({
+function getSmtpProvider(): SMTPProviderType | null {
+  if (!_smtpProvider && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+    _smtpProvider = new SMTPProvider({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       user: process.env.SMTP_USER,
       password: process.env.SMTP_PASSWORD,
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    })
-  : null;
+    });
+  }
+  return _smtpProvider;
+}
 
-const resendProvider = process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL
-  ? new ResendProvider({
+function getResendProvider(): ResendProviderType | null {
+  if (!_resendProvider && process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+    _resendProvider = new ResendProvider({
       apiKey: process.env.RESEND_API_KEY,
       fromEmail: process.env.RESEND_FROM_EMAIL,
-    })
-  : null;
+    });
+  }
+  return _resendProvider;
+}
 
 /**
  * Send email using configured provider
@@ -41,24 +56,32 @@ export async function sendEmail(
   from?: string
 ): Promise<SendResult> {
   try {
-    switch (EMAIL_PROVIDER) {
-      case 'sendgrid':
-        if (!sendGridProvider) {
+    const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase();
+
+    switch (provider) {
+      case 'sendgrid': {
+        const provider = getSendGridProvider();
+        if (!provider) {
           throw new Error('SendGrid not configured. Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL');
         }
-        return await sendGridProvider.sendEmail(to, subject, body, from);
+        return await provider.sendEmail(to, subject, body, from);
+      }
 
-      case 'smtp':
-        if (!smtpProvider) {
+      case 'smtp': {
+        const provider = getSmtpProvider();
+        if (!provider) {
           throw new Error('SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
         }
-        return await smtpProvider.sendEmail(to, subject, body, from);
+        return await provider.sendEmail(to, subject, body, from);
+      }
 
-      case 'resend':
-        if (!resendProvider) {
+      case 'resend': {
+        const provider = getResendProvider();
+        if (!provider) {
           throw new Error('Resend not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL');
         }
-        return await resendProvider.sendEmail(to, subject, body, from);
+        return await provider.sendEmail(to, subject, body, from);
+      }
 
       case 'gmail':
       default:
