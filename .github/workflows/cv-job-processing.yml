@@ -1,18 +1,14 @@
-name: Process CV and Job Matching
+name: Process CV and Job Matching (legacy)
+# ⚠️ REEMPLAZADO POR .github/workflows/main.yml
+# Solo ejecutable manualmente via workflow_dispatch
 
 on:
-  schedule:
-    - cron: '0 9 * * 1'
   workflow_dispatch:
     inputs:
       userId:
         description: 'User ID para procesar CV'
         required: false
         default: '1'
-  push:
-    branches: [main]
-    paths:
-      - 'cvs/**/*.pdf'
 
 jobs:
   process-cv:
@@ -46,10 +42,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-    - name: Install dependencies
-      run: |
-        npm ci
-        npx prisma generate
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx prisma generate
 
       - name: Push database schema
         run: npx prisma db push --accept-data-loss
