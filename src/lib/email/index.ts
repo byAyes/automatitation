@@ -80,7 +80,7 @@ export async function sendEmail(
         if (!p) {
           throw new Error('SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
         }
-        return await p.sendEmail(to, subject, body, from);
+        return await p.sendEmail(to, subject, body, from, html, cc);
       }
 
       case 'resend': {

@@ -27,13 +27,15 @@ export class SMTPProvider {
     });
   }
 
-  async sendEmail(to: string, subject: string, body: string, from?: string): Promise<SendResult> {
+  async sendEmail(to: string, subject: string, body: string, from?: string, html?: string, cc?: string | string[]): Promise<SendResult> {
     try {
       const info = await this.transporter.sendMail({
         from: from || this.config.from,
         to,
+        cc,
         subject,
         text: body,
+        ...(html ? { html } : {}),
       });
 
       return {
