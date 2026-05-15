@@ -2,28 +2,28 @@
 
 > **Automated job board scraping with AI-powered matching, delivered to your inbox weekly in beautiful HTML.**
 
-[![Status](https://img.shields.io/badge/status-production-success)](https://github.com/byAyes/automatitation)
+[![Status](https://img.shields.io/badge/status-production-success)](https://github.com/byAyes/SeaHorse)
 [![License](https://img.shields.io/badge/license-ISC-blue)](LICENSE)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/byAyes/automatitation/weekly-job-email.yml?branch=main)](https://github.com/byAyes/automatitation/actions)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/byAyes/SeaHorse/main.yml?branch=main)](https://github.com/byAyes/SeaHorse/actions)
 
 ---
 
 ## 🎯 What It Does
 
-Seahorse automates your job search by scraping **5+ sources**, matching jobs against your profile with **weighted AI scoring**, and sending you a **beautiful HTML email digest** every week.
+Seahorse automates your job search by scraping **5+ sources**, matching jobs against your **AI-extracted profile** with **weighted scoring**, and sending you a **beautiful HTML email digest with emojis and real scores** every week.
 
 ```
-Scrape → Match → Filter → Email → Done.
+Upload CV/PDF → Extract profile (AI) → Scrape → Match → Email
 ```
 
 ### Pipeline Overview
 
-| Step | What | Sources |
+| Step | What | Details |
 |:----:|------|---------|
-| ① | **Scrape** job boards | JSearch API, Indeed, Glassdoor, Computrabajo, LinkedIn |
-| ② | **Match** against profile | Skills (40%), Interests (30%), Location (20%), Salary (10%) |
-| ③ | **Filter** for relevance | >70% match threshold, dedup, date filtering |
-| ④ | **Email** curated digest | Beautiful HTML email with CC support |
+| ① | **Extract profile** from CV/PDF | Gemini AI extracts skills, titles, locations, level, languages |
+| ② | **Scrape** job boards | JSearch API + Python Scrapling (Computrabajo, Indeed, Glassdoor, LinkedIn) |
+| ③ | **Match** against profile | Skills (40%), Interests (30%), Location (20%), Salary (10%) |
+| ④ | **Email** curated digest | Premium HTML with emojis, scores, stats, CC support |
 | ⑤ | **Cleanup** old jobs | 3-month retention policy |
 
 ---
@@ -33,15 +33,15 @@ Scrape → Match → Filter → Email → Done.
 ### Prerequisites
 
 - **Node.js 20+** and **Python 3.12+**
-- **Resend** account (free — 100 emails/day) or Gmail API credentials
+- **Gmail account** with App Password (for SMTP) — or Resend/Gmail API key
 - **(Optional)** PostgreSQL database (pipeline works without it via mock proxy)
 
 ### Installation
 
 ```bash
 # Clone
-git clone https://github.com/byAyes/automatitation.git
-cd automatitation
+git clone https://github.com/byAyes/SeaHorse.git
+cd SeaHorse
 
 # Node dependencies
 npm install
@@ -59,23 +59,27 @@ cp .env.example .env
 
 ### Configuration
 
-**1. Email Provider (pick one):**
-
-| Provider | Setup | Free Tier |
-|----------|-------|:---------:|
-| **Resend** (recommended) | `RESEND_API_KEY` from [resend.com](https://resend.com) | 100/day |
-| **Gmail** | OAuth2 via Google Cloud Console | 500/day |
-| **SendGrid** | `SENDGRID_API_KEY` from Twilio | 100/day |
-| **SMTP** | Standard SMTP credentials | — |
+**1. Email Provider (SMTP recommended):**
 
 ```env
-EMAIL_PROVIDER=resend
-RESEND_API_KEY=re_xxx
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your.email@gmail.com
+SMTP_PASSWORD=your-app-password-here
+SMTP_FROM=your.email@gmail.com
 GMAIL_RECIPIENT=you@email.com
 
 # Optional: CC someone else on every digest
-# CC_EMAIL=juanesteban2045@gmail.com
+# EMAIL_CC=juanesteban2045@gmail.com
 ```
+
+| Provider | Setup | Free Tier |
+|----------|-------|:---------:|
+| **SMTP (Gmail)** ✅ *recommended* | App Password from Google | 500/day |
+| **Resend** | `RESEND_API_KEY` from [resend.com](https://resend.com) | 100/day |
+| **Gmail API** | OAuth2 via Google Cloud Console | 500/day |
+| **SendGrid** | `SENDGRID_API_KEY` from Twilio | 100/day |
 
 **2. JSearch API Key (recommended for best results):**
 
@@ -89,7 +93,11 @@ JSEARCH_API_KEY=your-key-here
 
 The pipeline uses a **mock database proxy** by default — all jobs pass through, no persistence needed.
 
-To enable real storage, set:
+```env
+# No DATABASE_URL needed — works with mock
+```
+
+To enable real storage later:
 ```env
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ```
@@ -97,138 +105,152 @@ DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ### First Run
 
 ```bash
+# Full pipeline with CV/PDF extraction
+npx tsx scripts/run-profile-pipeline.ts path/to/your-cv.pdf
+
+# Or run the basic pipeline
 npm run automate
 ```
 
-In ~60 seconds you'll get a beautiful HTML email with jobs from up to 5 sources.
+In ~60–90 seconds you'll get a beautiful HTML email with jobs matched to your profile.
 
 ---
 
 ## 📧 Email Preview
 
 Every digest includes:
-- **Stats bar** — total jobs, average match score, best match
-- **Job cards** — title, company, location, salary, skills pills
-- **Match score badges** — color-coded (≥80% green, ≥60% amber, <60% red)
-- **"View Job →"** buttons linking directly to postings
-- **Plain text fallback** for email clients that don't support HTML
 
-> **Note:** CC is supported (e.g., `juanesteban2045@gmail.com`) but requires a verified custom domain in Resend. The free `onboarding@resend.dev` sender only delivers to the registered email.
+| Section | Content |
+|---------|---------|
+| 📬 **Header** | "Weekly Job Digest" with date |
+| 📊 **Stats bar** | Total jobs found, average match score ⭐, best match 🏆 |
+| 🙋 **Your Profile** | Skills 🔧, Roles 💼, Location 📍, Level 📈, Languages 🗣️ |
+| 📋 **Stats cards** | Jobs Found, Avg Match 🎯, Best Match 🔥 |
+| 💼 **Job cards** | Title, Company 🏢, Location 📍, Salary 💰, Source 🌐 |
+| 🎯 **Score badge** | Color-coded match score per job |
+| 🚀 **View Job CTA** | Direct link to posting |
+| 😔 **Empty state** | Friendly message with 🍀 when no jobs found |
+
+> **Note:** Emails are sent with full HTML rendering via SMTP. The HTML fix ensures nodemailer receives and sends the `html` field correctly.
 
 ---
 
 ## 📦 Features
 
+### ✅ AI PDF Profile Extraction
+
+| Feature | Method | File |
+|---------|--------|------|
+| Extract profile from CV/PDF | Gemini AI (`gemini-2.0-flash`) | `src/lib/ai/pdfProfileExtractor.ts` |
+| Keyword fallback | Regex + keyword matching | `src/lib/ai/pdfProfileExtractor.ts` |
+| Build scrape strategy | Queries from extracted profile | `src/lib/ai/scrapeStrategy.ts` |
+| Pipeline integration | Full end-to-end | `scripts/run-profile-pipeline.ts` |
+
+**Extracted fields:** Job titles, Skills, Locations, Experience level, Languages
+
 ### ✅ Scrapers (5 sources)
 
 | Source | Method | Status | Jobs/Run |
 |--------|--------|:------:|:--------:|
-| **JSearch** (RapidAPI) | REST API | ✅ Always works | 10 |
-| **Indeed** | Python Scrapling | ✅ Stealth browser | 10 |
-| **Glassdoor** | Python Scrapling | ✅ Stealth browser | 10 |
-| **Computrabajo** | Python Scrapling | ✅ Stealth browser | 10 |
-| **LinkedIn** | Python Scrapling | ⚠️ Anti-bot (0 jobs) | — |
+| **JSearch** (RapidAPI) | REST API | ✅ Always works | ~10 |
+| **Computrabajo** | Python Scrapling | ✅ Stealth browser | ~10 |
+| **Indeed** | Python Scrapling | ⚠️ Intermittent | 0–10 |
+| **Glassdoor** | Python Scrapling | ⚠️ Intermittent | 0–10 |
+| **LinkedIn** | Python Scrapling | ❌ Blocked | 0 |
 
-**Total per run:** ~30–40 jobs
+**Total per run:** ~15–20 jobs (graceful degradation — failed scrapers don't crash)
 
 ### ✅ Matching Engine
 
-- **Weighted scoring**: Skills (40%), Interests (30%), Location (20%), Salary (10%)
-- **Fuzzy skill matching** via Levenshtein distance
-- **Partial interest matching** — substring containment scores proportionally
-- **Location flexibility** — exact city, remote hybrid, partial matches
-- **Salary sanity** — penalizes over-max budgets
+| Factor | Weight | How it works |
+|--------|:------:|--------------|
+| Skills | **40%** | Fuzzy matching (Levenshtein distance) against CV skills |
+| Interests | **30%** | Job title/industry vs career interests |
+| Location | **20%** | Exact city, remote hybrid, partial matches |
+| Salary | **10%** | Range overlap, penalizes over-max budgets |
+
+- **Real scores** — no more fake `score: 100`. Every job scored honestly.
+- **Color-coded badges:** Excellent (≥80%), Good (≥60%), Potential (<60%)
 
 ### ✅ Email Providers
 
-- **Resend** — primary, beautiful HTML + plain text multipart
-- **Gmail** — OAuth2, multipart/alternative MIME
-- **SendGrid** — API-based fallback
-- **SMTP** — generic SMTP fallback
+| Provider | Method | HTML | CC | Status |
+|----------|--------|:----:|:--:|:------:|
+| **SMTP (Gmail)** | App Password | ✅ | ✅ | **Default** |
+| **Resend** | API | ✅ | ⚠️ (needs domain) | Available |
+| **Gmail API** | OAuth2 | ✅ | ✅ | Available |
+| **SendGrid** | API | ✅ | ✅ | Available |
 
 ### ✅ Automation
 
 - **Weekly cron** — GitHub Actions (Thu 9 AM UTC)
+- **Push trigger** — any push to `main` runs pipeline
 - **Manual trigger** via Actions tab or CLI
-- **Job deduplication** by URL + email history
-- **3-month cleanup** retention policy
+- **SMTP secrets configured** for CI (no Resend/Gmail OAuth needed)
 - **Structured logging** with per-scraper stats
+- **3-month cleanup** retention policy
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│              GitHub Actions (Weekly Cron)                │
-│            Every Thursday at 9:00 AM UTC                 │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│  Scheduler (src/automation/scheduler.ts)                 │
-│  • Entry point  • Error handling  • Structured logging   │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-                       ▼
-┌───────────────────────────────────────────────────────────┐
-│  Orchestrator (src/automation/orchestrator.ts)             │
-│                                                           │
-│  ┌───────────────────────────────────────────────────┐    │
-│  │ 1. Scrape (parallel)                              │    │
-│  │    ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌────┐ │    │
-│  │    │ JSearch  │ │  Indeed  │ │ Glassdoor │ │ ...│ │    │
-│  │    │ (REST)   │ │(Scrapling)│ │(Scrapling)│ │    │ │    │
-│  │    └─────────┘ └──────────┘ └───────────┘ └────┘ │    │
-│  └───────────────────────────────────────────────────┘    │
-│  ┌───────────────────────────────────────────────────┐    │
-│  │ 2. Filter & Match                                  │    │
-│  │    • Dedup by URL  • Weighted scoring (4 axes)     │    │
-│  │    • >70% threshold  • Date filtering              │    │
-│  └───────────────────────────────────────────────────┘    │
-│  ┌───────────────────────────────────────────────────┐    │
-│  │ 3. Send Email Digest                               │    │
-│  │    • Beautiful HTML template  • CC support         │    │
-│  │    • Resend/Gmail/SendGrid/SMTP                    │    │
-│  └───────────────────────────────────────────────────┘    │
-│  ┌───────────────────────────────────────────────────┐    │
-│  │ 4. Cleanup                                         │    │
-│  │    • Remove jobs > 3 months  • Log scraper stats   │    │
-│  └───────────────────────────────────────────────────┘    │
-└───────────────────────────────────────────────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  Python Scrapers (subprocess)   │
-        │  • Scrapling StealthyFetcher    │
-        │  • JSON on stdout to TS bridge  │
-        │  • 3x retry with exp. backoff   │
-        └─────────────────────────────────┘
-```
-
-### Data Flow: TypeScript ↔ Python
-
-```
-┌──────────────────────────────────────┐
-│  ScraperRunner (TS)                  │
-│  src/scrapers/index.ts               │
-│                                      │
-│  For each scraper in scrapers.yaml:  │
-│    → pythonBridge.ts:                 │
-│      spawn("python", ["-m", module]) │
-│        │                              │
-│        ▼                              │
-│  ┌──────────────────────────────┐    │
-│  │  Python Scraper              │    │
-│  │  ScraplingBaseScraper        │    │
-│  │  • StealthyFetcher.fetch()   │    │
-│  │  • Parse CSS selectors       │    │
-│  │  • print(ScraperResult JSON) │    │
-│  └──────────────────────────────┘    │
-│        │                              │
-│        ▼                              │
-│  ← JSON parsed, stderr → logs       │
-└──────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    GitHub Actions (main.yml)                     │
+│           Push to main + Weekly cron (Thu 9 AM UTC)              │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Pipeline Entry                                                │
+│  scripts/run-profile-pipeline.ts  OR  src/automation/scheduler  │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Orchestrator (src/automation/orchestrator.ts)                  │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 0. Extract Profile (if CV/PDF provided)                 │   │
+│  │    • Gemini AI extraction from PDF text                  │   │
+│  │    • Fallback: keyword extraction                        │   │
+│  │    • Build scrape strategy (queries, locations)          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 1. Scrape (parallel)                                    │   │
+│  │    ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐│   │
+│  │    │ JSearch  │ │Computrab.│ │  Indeed  │ │ Glassdoor││   │
+│  │    │ (REST)   │ │(Scrap.)  │ │(Scrap.)  │ │(Scrap.)  ││   │
+│  │    └──────────┘ └──────────┘ └──────────┘ └──────────┘│   │
+│  └─────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 2. Score (calculateMatchScore)                          │   │
+│  │    • Skills 40%  • Interests 30%                        │   │
+│  │    • Location 20% • Salary 10%                          │   │
+│  │    • REAL scores — no fake 100%                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 3. Send Email Digest (SMTP)                             │   │
+│  │    • Premium HTML template with emojis 🎯🔥🚀           │   │
+│  │    • Real match scores + stats cards                    │   │
+│  │    • CC support                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+        ┌─────────────────────────────────────────────────┐
+        │  Python Scrapers (subprocess)                   │
+        │  • Scrapling StealthyFetcher                    │
+        │  • JSON on stdout → TS bridge                   │
+        │  • 3x retry with exp. backoff                   │
+        └─────────────────────────────────────────────────┘
+                           │
+                           ▼
+        ┌─────────────────────────────────────────────────┐
+        │  Database (Mock Proxy — DB deferred)            │
+        │  • Mock Prisma client → empty/safe defaults     │
+        │  • Issue #9: Supabase integration pending       │
+        └─────────────────────────────────────────────────┘
 ```
 
 ---
@@ -237,59 +259,68 @@ Every digest includes:
 
 ```
 seahorse/
-├── .github/workflows/          # GitHub Actions automation
-│   ├── weekly-job-email.yml    # Weekly digest (Thu 9 AM)
-│   └── cv-job-processing.yml   # CV processing pipeline
-├── scrapers/                   # Python Scrapling scrapers
-│   ├── shared/                 # Shared Python modules
-│   │   ├── base.py             # ScraplingBaseScraper ABC
-│   │   ├── models.py           # Job + ScraperResult dataclasses
-│   │   ├── config.py           # ScraperConfig from YAML
-│   │   └── runner.py           # YAML-driven CLI entrypoint
-│   ├── linkedin.py             # LinkedIn scraper
-│   ├── glassdoor.py            # Glassdoor scraper
-│   ├── computrabajo.py         # Computrabajo scraper
-│   ├── indeed.py               # Indeed scraper (NEW — Scrapling)
-│   └── requirements.txt        # Python dependencies
+├── .github/workflows/
+│   └── main.yml                 # Consolidated pipeline (SMTP)
+├── .planning/
+│   ├── ROADMAP.md               # Updated roadmap (7 phases)
+│   ├── PROJECT.md               # Project overview
+│   ├── REQUIREMENTS.md          # Requirements spec
+│   ├── STATE.md                 # State tracking
+│   └── phases/                  # 7 phases of planning docs
+├── scrapers/                    # Python Scrapling scrapers
+│   ├── shared/                  # Shared Python modules
+│   │   ├── base.py              # ScraplingBaseScraper ABC
+│   │   ├── models.py            # Job + ScraperResult dataclasses
+│   │   ├── config.py            # ScraperConfig from YAML
+│   │   └── runner.py            # YAML-driven CLI entrypoint
+│   ├── linkedin.py              # LinkedIn scraper
+│   ├── glassdoor.py             # Glassdoor scraper
+│   ├── computrabajo.py          # Computrabajo scraper
+│   ├── indeed.py                # Indeed scraper (Scrapling)
+│   └── requirements.txt         # Python dependencies
 ├── src/
-│   ├── automation/             # Pipeline orchestration
-│   │   ├── scheduler.ts        # Entry point
-│   │   ├── orchestrator.ts     # Pipeline logic
-│   │   └── lib/matcher/        # AI matchers (keyword, ollama, gemini, openai)
-│   ├── scrapers/               # TypeScript scraper layer
-│   │   ├── index.ts            # ScraperRunner (orchestrates all)
-│   │   ├── bridge/pythonBridge.ts  # TS ↔ Python subprocess bridge
-│   │   ├── strategies/         # TS-native scrapers
-│   │   │   ├── jsearch.ts      # JSearch REST API
-│   │   │   ├── indeed.ts       # Old HTTP indeed (now unused)
-│   │   │   └── httpScraper.ts  # HTTP base class
-│   │   └── utils/rateLimiter.ts
+│   ├── automation/
+│   │   ├── orchestrator.ts      # Pipeline logic (with profile extraction)
+│   │   ├── scheduler.ts         # Entry point
+│   │   └── lib/matcher/         # AI matchers (keyword, ollama, gemini, openai)
 │   ├── lib/
-│   │   ├── email/              # Multi-provider email
-│   │   │   ├── index.ts        # sendEmail() with provider routing
-│   │   │   ├── template.ts     # Beautiful HTML + plain text
-│   │   │   ├── gmail.ts        # Gmail OAuth2 provider
-│   │   │   └── providers/      # Resend, SendGrid, SMTP
-│   │   ├── automation/         # Job history, dedup, logging
-│   │   ├── cv/                 # CV parsing & skill extraction
-│   │   ├── pdf/                # PDF job detection
-│   │   └── prisma.ts           # Prisma singleton (mock proxy)
-│   ├── matching/               # Weighted scoring engine
-│   │   ├── scorer.ts           # Main scoring orchestrator
-│   │   ├── skill-matcher.ts    # Fuzzy skill matching
-│   │   ├── interest-matcher.ts # Interest matching
-│   │   ├── location-matcher.ts # Location matching
-│   │   └── salary-matcher.ts   # Salary range scoring
-│   ├── app/api/                # Next.js API routes
-│   └── types/                  # TypeScript interfaces
-├── scripts/                    # CLI utilities
-│   ├── send-email-digest.ts    # Send test digest
-│   ├── test-email.ts           # Quick email test
-│   ├── match-jobs.ts           # Test matching engine
-│   └── get-gmail-tokens.js     # Gmail OAuth setup
-├── scrapers.yaml               # Scraper definitions (config-driven)
-├── prisma/schema.prisma        # Database schema
-└── .planning/                  # GSD planning docs (12 phases)
+│   │   ├── ai/
+│   │   │   ├── pdfProfileExtractor.ts  # Gemini AI profile extraction
+│   │   │   └── scrapeStrategy.ts       # Build queries from profile
+│   │   ├── email/
+│   │   │   ├── index.ts         # sendEmail() with provider routing
+│   │   │   ├── template.ts      # Premium HTML with emojis + scores
+│   │   │   ├── gmail.ts         # Gmail OAuth2 provider
+│   │   │   └── providers/       # SMTP, Resend, SendGrid
+│   │   ├── pdf/                 # PDF parsing, duplicate detection
+│   │   ├── cv/                  # CV parsing & skill extraction
+│   │   └── prisma.ts            # Mock Prisma client (DB deferred)
+│   ├── scrapers/
+│   │   ├── index.ts             # ScraperRunner
+│   │   ├── bridge/pythonBridge.ts  # TS ↔ Python subprocess bridge
+│   │   ├── strategies/          # JSearch API, HTTP scraper
+│   │   └── utils/rateLimiter.ts
+│   ├── matching/
+│   │   ├── scorer.ts            # calculateMatchScore() orchestrator
+│   │   ├── skill-matcher.ts     # Fuzzy skill matching
+│   │   ├── interest-matcher.ts  # Interest matching
+│   │   ├── location-matcher.ts  # Location matching
+│   │   └── salary-matcher.ts    # Salary range scoring
+│   ├── app/api/                 # Next.js API routes
+│   │   ├── cv/upload|process|update-profile
+│   │   ├── pdf/upload|match
+│   │   ├── email/send
+│   │   ├── match-jobs
+│   │   └── profile/history
+│   └── types/                   # TypeScript interfaces
+├── scripts/
+│   ├── run-profile-pipeline.ts  # Full pipeline with CV/PDF
+│   ├── send-email-digest.ts     # Send digest from CLI
+│   ├── test-email.ts            # Quick email test
+│   ├── match-jobs.ts            # Test matching engine
+│   └── process-cv-uploads.ts    # CV processing
+├── scrapers.yaml                # Scraper definitions
+└── prisma/schema.prisma         # Database schema (5 models)
 ```
 
 ---
@@ -297,66 +328,90 @@ seahorse/
 ## 🛠️ Available Commands
 
 ```bash
-# Run the full pipeline
-npm run automate
+# Run the full pipeline with CV/PDF extraction
+npx tsx scripts/run-profile-pipeline.ts path/to/cv.pdf
 
-# Run specific scrapers directly (Python)
-python -m scrapers.indeed --query "software engineer" --max 5
-python -m scrapers.glassdoor --query "software engineer" --max 5
+# Run the basic pipeline
+npm run automate
 
 # Test email (HTML + plain text)
 npx tsx scripts/test-email.ts
 
-# Database (when enabled)
-npx prisma db push       # Push schema
-npx prisma generate      # Generate client
-npx prisma studio        # GUI viewer
+# Test matching engine
+npx tsx scripts/test-matching.ts
 
-# Gmail OAuth setup (if using Gmail provider)
-node scripts/get-gmail-tokens.js
+# Run specific scrapers (Python)
+python -m scrapers.computrabajo --query "software engineer" --max 5
+python -m scrapers.indeed --query "software engineer" --max 5
+
+# Database (when enabled)
+npx prisma db push       # Push schema to Supabase
+npx prisma generate      # Generate Prisma client
+npx prisma studio        # GUI viewer
 ```
 
 ---
 
 ## 🔐 Environment Variables
 
+### Email (SMTP — recommended)
+
 | Variable | Description | Required |
 |----------|-------------|:--------:|
-| `EMAIL_PROVIDER` | `resend` \| `gmail` \| `sendgrid` \| `smtp` | ✅ |
+| `EMAIL_PROVIDER` | `smtp` (recommended) | ✅ |
+| `SMTP_HOST` | `smtp.gmail.com` | For SMTP |
+| `SMTP_PORT` | `587` | For SMTP |
+| `SMTP_USER` | Your Gmail address | For SMTP |
+| `SMTP_PASSWORD` | Gmail App Password | For SMTP |
+| `SMTP_FROM` | Sender email | For SMTP |
 | `GMAIL_RECIPIENT` | Email address for digests | ✅ |
-| `RESEND_API_KEY` | Resend API key | For Resend |
-| `JSEARCH_API_KEY` | RapidAPI JSearch key | For JSearch |
-| `DATABASE_URL` | PostgreSQL connection | Optional |
-| `GOOGLE_CLIENT_ID` | Gmail OAuth client ID | For Gmail |
-| `GOOGLE_CLIENT_SECRET` | Gmail OAuth client secret | For Gmail |
-| `GMAIL_ACCESS_TOKEN` | Gmail access token | For Gmail |
-| `GMAIL_REFRESH_TOKEN` | Gmail refresh token | For Gmail |
-| `SENDGRID_API_KEY` | SendGrid API key | For SendGrid |
-| `CC_EMAIL` | CC address on digests | Optional |
+| `EMAIL_CC` | CC address on digests | Optional |
 
-See `.env.example` for full template.
+### API Keys
+
+| Variable | Description | Required |
+|----------|-------------|:--------:|
+| `JSEARCH_API_KEY` | RapidAPI JSearch key | For JSearch |
+| `GEMINI_API_KEY` | Google Gemini API key | For AI extraction |
+
+### Email Providers (Alternatives)
+
+| Variable | Description | For |
+|----------|-------------|-----|
+| `RESEND_API_KEY` | Resend API key | Resend |
+| `RESEND_FROM_EMAIL` | Resend sender | Resend |
+| `SENDGRID_API_KEY` | SendGrid API key | SendGrid |
+| `GOOGLE_CLIENT_ID` | Gmail OAuth client ID | Gmail API |
+| `GOOGLE_CLIENT_SECRET` | Gmail OAuth client secret | Gmail API |
+| `GMAIL_REFRESH_TOKEN` | Gmail refresh token | Gmail API |
+
+### Database
+
+| Variable | Description | Required |
+|----------|-------------|:--------:|
+| `DATABASE_URL` | PostgreSQL connection | Optional (mock by default) |
 
 ---
 
 ## 📊 Pipeline Performance
 
-| Scraper | Avg Jobs | Reliability | Method |
-|---------|:--------:|:-----------:|--------|
-| JSearch | 10 | ⭐⭐⭐⭐⭐ | REST API (always works) |
-| Indeed | 10 | ⭐⭐⭐⭐ | Scrapling Stealth |
-| Glassdoor | 10 | ⭐⭐⭐⭐ | Scrapling Stealth |
-| Computrabajo | 10 | ⭐⭐⭐⭐ | Scrapling Stealth |
+| Source | Avg Jobs | Reliability | Method |
+|--------|:--------:|:-----------:|--------|
+| JSearch | ~10 | ⭐⭐⭐⭐⭐ | REST API |
+| Computrabajo | ~10 | ⭐⭐⭐⭐ | Python Scrapling |
+| Indeed | 0–10 | ⭐⭐⭐ | Python Scrapling |
+| Glassdoor | 0–10 | ⭐⭐⭐ | Python Scrapling |
 | LinkedIn | 0 | ⭐ | Anti-bot (blocked) |
 
-**Total:** ~30–40 jobs per run, delivered in ~60s.
+**Total:** ~15–20 jobs per run, delivered in ~60–90s.
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Full pipeline test
-npm run automate
+# Full pipeline with profile extraction
+npx tsx scripts/run-profile-pipeline.ts my-cv.pdf
 
 # Email only
 npx tsx scripts/test-email.ts
@@ -365,69 +420,72 @@ npx tsx scripts/test-email.ts
 npx tsx scripts/test-matching.ts
 
 # GitHub Actions
-# Actions → Weekly Job Email Automation → Run workflow
+# Actions → Pipeline Principal → Run workflow
 ```
 
 ---
 
-## 📈 Roadmap
+## 🗺️ Roadmap & Issues
 
-### Phase 1: Job Board Scraper ✅
-- [x] Foundation and base scraper
-- [x] Indeed, LinkedIn, Glassdoor scrapers
-- [x] Puppeteer → Scrapling migration (Python subprocess)
+| # | Phase | Status | Issue |
+|---|-------|--------|-------|
+| 1 | Job Board Scraper | ✅ **Complete** | — |
+| 2 | AI Job Matching | ✅ **Complete** | — |
+| 3 | Email Notifications (HTML + emojis + scores) | ✅ **Complete** | — |
+| 4 | Automation & Scheduling (SMTP in CI) | ✅ **Complete** | — |
+| 5 | AI PDF Profile Extraction | ✅ **Complete** | [#7](https://github.com/byAyes/SeaHorse/issues/7) ✅ |
+| 6 | Supabase Database Integration | 🔜 **In Progress** | [#9](https://github.com/byAyes/SeaHorse/issues/9) |
+| 7 | Frontend UI Dashboard (React) | 🔜 **Planned** | [#8](https://github.com/byAyes/SeaHorse/issues/8) |
 
-### Phase 2: AI Job Matching ✅
-- [x] Weighted scoring (Skills 40%, Interests 30%, Location 20%, Salary 10%)
-- [x] Fuzzy skill matching (Levenshtein)
-- [x] Multiple AI matchers (keyword, ollama, gemini, openai)
+### Open Issues
 
-### Phase 3: Email Notifications ✅
-- [x] Multi-provider (Resend, Gmail, SendGrid, SMTP)
-- [x] Beautiful HTML email template with job cards
-- [x] Plain text fallback
-- [x] CC support
+| # | Title | State |
+|---|-------|-------|
+| [#9](https://github.com/byAyes/SeaHorse/issues/9) | Integración Supabase — reemplazar mock Prisma | 🟢 Open |
+| [#8](https://github.com/byAyes/SeaHorse/issues/8) | Frontend UI — Dashboard React | 🟢 Open |
 
-### Phase 4: Automation & Scheduling ✅
-- [x] GitHub Actions weekly cron (Thu 9 AM UTC)
-- [x] Job history, dedup, 3-month cleanup
-- [x] Structured logging with scraper stats
+### Closed Issues
 
-### Phase 5: PDF Job Detection ✅
-- [x] PDF upload, parsing, skill extraction
-- [x] Duplicate detection
-
-### Phase 6: CV Database ✅
-- [x] CV versioning, profile auto-update
-- [x] Change history logging
-
-### Future Enhancements
-- [ ] **LinkedIn** — resolve anti-bot (cookie injection, residential proxies)
-- [ ] **Multi-user** — per-user profiles + email schedules
-- [ ] **Dashboard** — web UI for jobs, matches, history
-- [ ] **Real-time alerts** — push notifications for high-match jobs
-- [ ] **Custom domain** — verify domain in Resend to enable CC delivery
-- [ ] **Better location/remote detection** from job descriptions
+| # | Title | State |
+|---|-------|-------|
+| [#7](https://github.com/byAyes/SeaHorse/issues/7) | AI PDF profile extraction | 🔵 Closed ✅ |
+| [#6](https://github.com/byAyes/SeaHorse/issues/6) | process-cv pipeline (absorbed) | 🔵 Closed |
 
 ---
 
 ## 🚢 GitHub Actions
 
-The workflow runs every Thursday at 9:00 AM UTC:
+The workflow runs on **push to `main`** and also **weekly (Thu 9 AM UTC)**:
 
 ```yaml
-# .github/workflows/weekly-job-email.yml
+# .github/workflows/main.yml
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scrapers/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'scrapers.yaml'
+      - '.github/workflows/**'
   schedule:
-    - cron: '0 9 * * 4'   # Thursday 9 AM UTC
-  workflow_dispatch:        # Manual trigger
+    - cron: '0 9 * * 4'
+  workflow_dispatch:
 ```
 
-**Required secrets** for CI:
-- `JSEARCH_API_KEY` — RapidAPI key
-- `EMAIL_PROVIDER`, `RESEND_API_KEY`, `GMAIL_RECIPIENT`
-- For Gmail: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GMAIL_*_TOKEN`
-- `DATABASE_URL` (optional)
+**Required secrets for CI (SMTP):**
+
+| Secret | Value |
+|--------|-------|
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | Your Gmail |
+| `SMTP_PASSWORD` | Gmail App Password |
+| `SMTP_FROM` | Your Gmail |
+| `GMAIL_RECIPIENT` | Destination email |
+| `EMAIL_CC` | (optional) CC address |
+| `JSEARCH_API_KEY` | RapidAPI key |
 
 ---
 
@@ -436,13 +494,15 @@ on:
 | Layer | Tech |
 |-------|------|
 | **Runtime** | Node.js (CommonJS) + `tsx` |
-| **Scraping** | Python 3.12 + Scrapling (StealthyFetcher) |
-| **Matching** | TypeScript — weighted scoring, Levenshtein, AI providers |
-| **Email** | Resend (primary), Gmail OAuth2, SendGrid, SMTP |
-| **Database** | PostgreSQL via Prisma ORM (deferred) |
+| **AI Profile Extraction** | Gemini Flash (`gemini-2.0-flash`) |
+| **Scraping** | Python 3.12 + Scrapling StealthyFetcher |
+| **Matching** | TypeScript — weighted scoring (40/30/20/10), Levenshtein |
+| **Email** | SMTP (primary), Resend, Gmail OAuth2, SendGrid |
+| **HTML Email** | Premium template with emojis, SVG icons, score badges |
+| **Database** | PostgreSQL via Prisma — **deferred** (mock proxy) |
 | **API** | Next.js App Router |
-| **CI/CD** | GitHub Actions (weekly cron) |
-| **Planning** | GSD (Get Shit Done) — 12-phase methodology |
+| **CI/CD** | GitHub Actions (push + weekly cron) |
+| **Planning** | GSD (Get Shit Done) — 7 phases completed |
 
 ---
 
@@ -453,7 +513,8 @@ This is a personal automation project. Fork and adapt for your own job search!
 **Ideas for contributions:**
 - New scraper for another job board
 - LinkedIn anti-bot bypass strategy
-- Dashboard UI for profile management
+- Dashboard UI (see [#8](https://github.com/byAyes/SeaHorse/issues/8))
+- Supabase integration (see [#9](https://github.com/byAyes/SeaHorse/issues/9))
 - Push notifications (Telegram, Slack)
 
 ---
@@ -470,6 +531,7 @@ ISC License — See [LICENSE](LICENSE) for details.
 - **[JSearch](https://rapidapi.com/letscrape-6bRBa3Qgu/api/jsearch)** — Free jobs API
 - **[Resend](https://resend.com)** — Email delivery
 - **[Prisma](https://prisma.io)** — Type-safe ORM
+- **[Google Gemini](https://deepmind.google/gemini/)** — AI profile extraction
 - **GSD Framework** — Structured planning methodology
 
 ---
@@ -478,6 +540,6 @@ ISC License — See [LICENSE](LICENSE) for details.
 
 **Built with ❤️ for efficient job searching**
 
-[View on GitHub](https://github.com/byAyes/automatitation) • [Report Issue](https://github.com/byAyes/automatitation/issues)
+[View on GitHub](https://github.com/byAyes/SeaHorse) • [Issues](https://github.com/byAyes/SeaHorse/issues) • [Roadmap](.planning/ROADMAP.md)
 
 </div>
