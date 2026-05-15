@@ -47,12 +47,14 @@ async function sendEmailDigest() {
       matchedSkills: j.skills,
     }));
 
-    const emailBody = formatJobDigest(jobEntries);
+    const { text, html } = formatJobDigest(jobEntries);
 
     const result = await sendEmail(
       RECIPIENT_EMAIL,
       `Weekly Job Digest - ${allJobs.length} new matches`,
-      emailBody
+      text,
+      undefined,
+      html
     );
 
     if (result.success) {

@@ -48,44 +48,52 @@ function getResendProvider(): ResendProviderType | null {
 /**
  * Send email using configured provider
  * Falls back to Gmail if specific provider is not configured
+ * @param to - Recipient email
+ * @param subject - Email subject
+ * @param body - Plain text body (fallback)
+ * @param from - Optional sender override
+ * @param html - Optional HTML body (rich email content)
+ * @param cc - Optional CC recipient(s)
  */
 export async function sendEmail(
   to: string,
   subject: string,
   body: string,
-  from?: string
+  from?: string,
+  html?: string,
+  cc?: string | string[]
 ): Promise<SendResult> {
   try {
     const provider = (process.env.EMAIL_PROVIDER || 'gmail').toLowerCase();
 
     switch (provider) {
       case 'sendgrid': {
-        const provider = getSendGridProvider();
-        if (!provider) {
+        const p = getSendGridProvider();
+        if (!p) {
           throw new Error('SendGrid not configured. Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL');
         }
-        return await provider.sendEmail(to, subject, body, from);
+        return await p.sendEmail(to, subject, body, from);
       }
 
       case 'smtp': {
-        const provider = getSmtpProvider();
-        if (!provider) {
+        const p = getSmtpProvider();
+        if (!p) {
           throw new Error('SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
         }
-        return await provider.sendEmail(to, subject, body, from);
+        return await p.sendEmail(to, subject, body, from);
       }
 
       case 'resend': {
-        const provider = getResendProvider();
-        if (!provider) {
+        const p = getResendProvider();
+        if (!p) {
           throw new Error('Resend not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL');
         }
-        return await provider.sendEmail(to, subject, body, from);
+        return await p.sendEmail(to, subject, body, from, html, cc);
       }
 
       case 'gmail':
       default:
-        return await sendGmailEmail(to, subject, body, from);
+        return await sendGmailEmail(to, subject, body, from, html, cc);
     }
   } catch (error) {
     return {
