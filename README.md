@@ -262,11 +262,9 @@ seahorse/
 ├── .github/workflows/
 │   └── main.yml                 # Consolidated pipeline (SMTP)
 ├── .planning/
-│   ├── ROADMAP.md               # Updated roadmap (7 phases)
+│   ├── ROADMAP.md               # Roadmap (7 phases)
 │   ├── PROJECT.md               # Project overview
-│   ├── REQUIREMENTS.md          # Requirements spec
-│   ├── STATE.md                 # State tracking
-│   └── phases/                  # 7 phases of planning docs
+│   └── REQUIREMENTS.md          # Requirements spec
 ├── scrapers/                    # Python Scrapling scrapers
 │   ├── shared/                  # Shared Python modules
 │   │   ├── base.py              # ScraplingBaseScraper ABC
