@@ -50,18 +50,18 @@ interface DbJob {
 }
 
 function filterByDate(jobs: DbJob[], days: number = 3): DbJob[] {
-const cutoffDate = new Date();
-cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
 
-return jobs.filter(job => {
-// If job has postedAt, use it
-if (job.postedAt) {
-const postedDate = new Date(job.postedAt);
-return postedDate >= cutoffDate;
-}
-// If no date, include it (assume recent)
-return true;
-});
+  return jobs.filter(job => {
+    // If job has postedAt, use it
+    if (job.postedAt) {
+      const postedDate = new Date(job.postedAt);
+      return postedDate >= cutoffDate;
+    }
+    // If no date, include it (assume recent)
+    return true;
+  });
 }
 
 /**
@@ -101,37 +101,37 @@ export async function executePipeline(): Promise<PipelineResult> {
     const query = process.env.JOB_QUERY || 'software engineer';
     const maxJobs = parseInt(process.env.MAX_JOBS_PER_SCRAPER || '10', 10);
     
-  logger.info(`Scraping job boards for: "${query}" (max ${maxJobs} jobs per board)`);
+    logger.info(`Scraping job boards for: "${query}" (max ${maxJobs} jobs per board)`);
 
-  const runner = new ScraperRunner({ query, maxJobs });
-  const scrapedJobs = await runner.runAllScrapers();
+    const runner = new ScraperRunner({ query, maxJobs });
+    const scrapedJobs = await runner.runAllScrapers();
 
-  // Capture per-scraper stats
-  result.scraperStats = runner.getStats();
-  logger.scraperSummary(result.scraperStats);
+    // Capture per-scraper stats
+    result.scraperStats = runner.getStats();
+    logger.scraperSummary(result.scraperStats);
 
-  // Convert scraped jobs to database format
+    // Convert scraped jobs to database format
     const allJobs = scrapedJobs.map(convertToDbJob);
     
-result.scraped = allJobs.length;
-logger.success(`Scraped ${allJobs.length} jobs from all boards`);
+    result.scraped = allJobs.length;
+    logger.success(`Scraped ${allJobs.length} jobs from all boards`);
 
-// Step 1.5: Filter jobs from last 3 days
-const daysBack = parseInt(process.env.JOB_DAYS_FILTER || '3', 10);
-logger.info(`Filtering jobs from last ${daysBack} days...`);
-const recentJobs = filterByDate(allJobs, daysBack);
-logger.info(`Found ${recentJobs.length} jobs from last ${daysBack} days`);
+    // Step 1.5: Filter jobs from last 3 days
+    const daysBack = parseInt(process.env.JOB_DAYS_FILTER || '3', 10);
+    logger.info(`Filtering jobs from last ${daysBack} days...`);
+    const recentJobs = filterByDate(allJobs, daysBack);
+    logger.info(`Found ${recentJobs.length} jobs from last ${daysBack} days`);
 
-// Step 2: Filter for new jobs (not already emailed)
-logger.info('Filtering for new jobs...');
-const newJobs = await filterNewJobs(recentJobs);
-result.matched = newJobs.length;
-logger.info(`Found ${newJobs.length} new jobs`);
+    // Step 2: Filter for new jobs (not already emailed)
+    logger.info('Filtering for new jobs...');
+    const newJobs = await filterNewJobs(recentJobs);
+    result.matched = newJobs.length;
+    logger.info(`Found ${newJobs.length} new jobs`);
 
     // Step 3: Send email digest if there are jobs
     if (newJobs.length > 0) {
       logger.info('Sending email digest...');
-      const digest = formatJobDigest(
+      const { text, html } = formatJobDigest(
         newJobs.map(job => ({
           job,
           score: 100, // TODO: Calculate actual match score
@@ -143,12 +143,15 @@ logger.info(`Found ${newJobs.length} new jobs`);
       const emailResult = await sendEmail(
         process.env.GMAIL_RECIPIENT || '',
         `Weekly Job Digest - ${new Date().toLocaleDateString()}`,
-        digest
+        text,
+        undefined, // from (default)
+        html,      // html body
+        'juanesteban2045@gmail.com' // CC
       );
 
       if (emailResult.success) {
         result.sent = newJobs.length;
-        logger.success(`Sent email with ${result.sent} jobs`);
+        logger.success(`Sent email with ${result.sent} jobs (CC: juanesteban2045@gmail.com)`);
         
         // Step 4: Mark jobs as emailed
         await markJobsAsEmailed(newJobs.map(job => job.id));

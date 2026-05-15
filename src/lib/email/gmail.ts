@@ -11,10 +11,10 @@ const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 // Set credentials if tokens are available
 if (process.env.GMAIL_ACCESS_TOKEN && process.env.GMAIL_REFRESH_TOKEN) {
-oauth2Client.setCredentials({
-access_token: process.env.GMAIL_ACCESS_TOKEN,
-refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-});
+  oauth2Client.setCredentials({
+    access_token: process.env.GMAIL_ACCESS_TOKEN,
+    refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+  });
 }
 
 // Initialize Gmail API client
@@ -64,27 +64,69 @@ export interface SendResult {
  * Send an email via Gmail API
  * @param to Recipient email address
  * @param subject Email subject
- * @param body Email body (plain text)
+ * @param body Email body (plain text fallback)
  * @param from Sender email (optional, defaults to authenticated user)
+ * @param html Optional HTML body for rich email content
+ * @param cc Optional CC recipient(s)
  * @returns SendResult with success status and message ID
  */
 export async function sendEmail(
   to: string,
   subject: string,
   body: string,
-  from?: string
+  from?: string,
+  html?: string,
+  cc?: string | string[]
 ): Promise<SendResult> {
   try {
     // Create RFC 2822 formatted email
     const sender = from || 'me';
-    const email = [
-      `From: ${sender}`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      'Content-Type: text/plain; charset=utf-8',
-      '',
-      body,
-    ].join('\n');
+
+    // Build CC header line if CC recipients are specified
+    const ccHeader = cc
+      ? `Cc: ${Array.isArray(cc) ? cc.join(', ') : cc}`
+      : null;
+
+    // Build MIME multipart email if HTML is provided, otherwise plain text
+    let email: string;
+
+    if (html) {
+      const boundary = '----=_Part_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+      const headers = [
+        `From: ${sender}`,
+        `To: ${to}`,
+        ...(ccHeader ? [ccHeader] : []),
+        `Subject: ${subject}`,
+        'MIME-Version: 1.0',
+        `Content-Type: multipart/alternative; boundary="${boundary}"`,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/plain; charset=utf-8',
+        'Content-Transfer-Encoding: 7bit',
+        '',
+        body,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/html; charset=utf-8',
+        'Content-Transfer-Encoding: 8bit',
+        '',
+        html,
+        '',
+        `--${boundary}--`,
+      ];
+      email = headers.join('\n');
+    } else {
+      const headers = [
+        `From: ${sender}`,
+        `To: ${to}`,
+        ...(ccHeader ? [ccHeader] : []),
+        `Subject: ${subject}`,
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        body,
+      ];
+      email = headers.join('\n');
+    }
 
     // Base64 encode the email (URL-safe)
     const encodedEmail = Buffer.from(email)
@@ -93,14 +135,14 @@ export async function sendEmail(
       .replace(/\//g, '_')
       .replace(/=+$/, '');
 
-// Send via Gmail API
-const gmailService = google.gmail({ version: 'v1', auth: oauth2Client });
-const response = await gmailService.users.messages.send({
-userId: 'me',
-requestBody: {
-raw: encodedEmail,
-},
-});
+    // Send via Gmail API
+    const gmailService = google.gmail({ version: 'v1', auth: oauth2Client });
+    const response = await gmailService.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedEmail,
+      },
+    });
 
     return {
       success: true,

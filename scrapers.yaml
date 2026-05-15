@@ -22,5 +22,13 @@ scrapers:
     class: ComputrabajoScraper
     max_jobs: 10
     rate_limit_ms: 5000
-  base_url: "https://co.computrabajo.com"
-  country: "co"
+    base_url: "https://co.computrabajo.com"
+    country: "co"
+
+  indeed:
+    enabled: true
+    module: scrapers.indeed
+    class: IndeedScraper
+    max_jobs: 10
+    rate_limit_ms: 5000
+    base_url: "https://www.indeed.com"
