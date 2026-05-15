@@ -1,32 +1,41 @@
 # Seahorse — Job Email Automation
 
 ## What This Is
-Automated job board scraper → AI matcher → email digest pipeline. Scrapes Glassdoor, Computrabajo, LinkedIn, Indeed, and JSearch; filters/matches jobs against a user profile; sends weekly email digests via Resend (free tier).
+Automated job board scraper → AI profile extraction → AI matcher → email digest pipeline. Upload a CV/PDF, it extracts your profile via Gemini AI, scrapes 5+ sources, scores jobs with weighted matching, and sends a beautiful HTML email with emojis and real match scores.
 
 ## Commands
 | Command | Purpose |
 |---------|---------|
-| `npm run automate` | Run the full pipeline (scrape → email) |
-| `npm test` | Run Jest test suite |
+| `npx tsx scripts/run-profile-pipeline.ts path/to/cv.pdf` | Full pipeline: extract profile → scrape → score → email |
+| `npm run automate` | Run the basic pipeline (scrape → email, no profile extraction) |
+| `npx tsx scripts/test-email.ts` | Test email sending (HTML) |
+| `npx tsx scripts/test-matching.ts` | Test matching engine |
+| `pip install -r scrapers/requirements.txt` | Install Python scraper deps |
+| `playwright install chromium` | Install browser for Scrapling |
+| `patchright install chromium` | Install patched browser for Scrapling |
 | `npx prisma db push` | Push schema changes to DB |
 | `npx prisma generate` | Regenerate Prisma client |
-| `pip install -r scrapers/requirements.txt` | Install Python scraper deps |
-| `npx tsx scripts/test-email.ts` | Test email sending |
-| `DOTENV_CONFIG_PATH=.env npx tsx scripts/debug-email.ts` | Debug email provider routing |
 
 ## Key Code Locations
-- **Pipeline entry** → `src/automation/scheduler.ts` → `src/automation/orchestrator.ts`
+- **Pipeline with profile** → `scripts/run-profile-pipeline.ts` → `src/automation/orchestrator.ts`
+- **Pipeline (basic)** → `src/automation/scheduler.ts` → `src/automation/orchestrator.ts`
+- **AI Profile Extraction** → `src/lib/ai/pdfProfileExtractor.ts` (Gemini + keyword fallback)
+- **Scrape Strategy Builder** → `src/lib/ai/scrapeStrategy.ts`
 - **Scrapers** → TypeScript bridge (`src/scrapers/`), Python subprocess (`scrapers/`)
-- **Matching** → `src/lib/matching/` (skills, location, salary via weighted scoring)
-- **Email** → `src/lib/email/` (Resend/SendGrid/SMTP/Gmail providers)
+- **Matching** → `src/matching/` (scorer.ts, skill-matcher, location-matcher, salary-matcher, interest-matcher)
+- **Email** → `src/lib/email/` (SMTP/Resend/SendGrid/Gmail providers)
+- **Email Template** → `src/lib/email/template.ts` (Premium HTML + emojis + scores)
 - **Scraper config** → `scrapers.yaml`
 
 ## Architecture Notes
 - **Typescript (CommonJS)** with `tsx` runtime
-- **Email**: Resend (free tier, 100 emails/day). Uses `onboarding@resend.dev` as sender.
+- **AI Extraction**: Gemini Flash (`gemini-2.0-flash`). Falls back to keyword extraction if API key not set.
+- **Email**: SMTP (Gmail App Password) is the **default** provider. Resend, Gmail API, SendGrid as alternatives.
   - Provider routing reads `EMAIL_PROVIDER` env var at call time (lazy init).
+  - SMTP was fixed to properly pass `html` and `cc` to nodemailer.
 - **Python scrapers**: Spawned as subprocesses via `pythonBridge.ts`. Use Scrapling library.
-- **Matching**: Weighted scoring (Skills 40% / Interests 30% / Location 20% / Salary 10%)
+- **Matching**: Weighted scoring (Skills 40% / Interests 30% / Location 20% / Salary 10%) — **real scores, no fake 100%**.
+- **Email template**: Premium HTML with emojis (📬📊🎯🔥🚀), SVG icons, score badges, stats cards, empty state.
 
 ## Database Status ⚠️
 Database (Supabase) is **deferred** due to a Windows + IPv6-only Supabase hostname connectivity issue. The Prisma client uses a mock that returns empty/safe defaults so the pipeline works without a database:
@@ -34,16 +43,68 @@ Database (Supabase) is **deferred** due to a Windows + IPv6-only Supabase hostna
 - Job history/cache is not persisted
 - Email marking and cleanup are no-ops
 
-**To re-enable**: Install `@prisma/adapter-pg` and `pg`, set `DATABASE_URL`, and swap `src/lib/prisma.ts` for the real client with adapter.
+**Tracked in:** [#9 — Integración Supabase](https://github.com/byAyes/SeaHorse/issues/9)
+**To re-enable**: Set `DATABASE_URL`, run `npx prisma migrate dev`, and swap `src/lib/prisma.ts` for the real client with adapter. Dependencies already installed: `@prisma/adapter-pg`, `pg`, `prisma`.
 
 ## Email Provider Configuration
+
+### SMTP (default — recommended)
 | Env Var | Value | Notes |
 |---------|-------|-------|
-| `EMAIL_PROVIDER` | `resend` | Switch to `gmail` or `sendgrid` or `smtp` |
+| `EMAIL_PROVIDER` | `smtp` | This is the default |
+| `SMTP_HOST` | `smtp.gmail.com` | Gmail SMTP server |
+| `SMTP_PORT` | `587` | TLS port |
+| `SMTP_USER` | email | Your Gmail address |
+| `SMTP_PASSWORD` | app password | Gmail App Password |
+| `SMTP_FROM` | email | Sender address |
+| `GMAIL_RECIPIENT` | email | Recipient for digests |
+| `EMAIL_CC` | email | Optional CC address |
+
+### Alternatives
+| Env Var | Value | Notes |
+|---------|-------|-------|
+| `EMAIL_PROVIDER` | `resend` | Switch to Resend |
 | `RESEND_API_KEY` | key | Resend API key |
 | `RESEND_FROM_EMAIL` | `onboarding@resend.dev` | Free tier sender |
-| `GMAIL_RECIPIENT` | email | Recipient for digests |
+| `EMAIL_PROVIDER` | `gmail` | Switch to Gmail API |
+| `EMAIL_PROVIDER` | `sendgrid` | Switch to SendGrid |
+
+## Scraper Performance
+| Source | Method | Status | Jobs/Run |
+|--------|--------|:------:|:--------:|
+| JSearch API | REST API | ✅ Always works | ~10 |
+| Computrabajo | Python Scrapling | ✅ Reliable | ~10 |
+| Indeed | Python Scrapling | ⚠️ Intermittent | 0–10 |
+| Glassdoor | Python Scrapling | ⚠️ Intermittent | 0–10 |
+| LinkedIn | Python Scrapling | ❌ Blocked | 0 |
+
+Total per run: **~15–20 jobs** — failed scrapers don't crash the pipeline.
 
 ## CI (GitHub Actions)
-- Runs weekly (Thu 9 AM UTC)
-- Seasonal CV cleanup processed monthly
+- **Workflow:** `.github/workflows/main.yml` (consolidated — single workflow)
+- **Triggers:** Push to `main`, weekly cron (Thu 9 AM UTC), manual dispatch
+- **Email:** SMTP via Gmail App Password secrets
+- **Python deps:** Installed at runtime via `pip install -r scrapers/requirements.txt`
+- **Browser:** Chrome/Chromium installed for Scrapling StealthyFetcher
+
+### Required CI Secrets
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `GMAIL_RECIPIENT`, `EMAIL_CC`, `JSEARCH_API_KEY`
+
+## Open Issues
+| # | Title | Link |
+|---|-------|------|
+| 9 | Integración Supabase | https://github.com/byAyes/SeaHorse/issues/9 |
+| 8 | Frontend UI Dashboard (React) | https://github.com/byAyes/SeaHorse/issues/8 |
+
+## Closed Issues
+| # | Title | Resolution |
+|---|-------|------------|
+| 7 | AI PDF profile extraction | ✅ Implemented and working |
+| 6 | process-cv pipeline | ✅ Absorbed into #7 + #9 |
+
+## Recent Fixes
+- **SMTP HTML**: Provider now accepts `html` and `cc` params — emails render with rich formatting (was plain text only)
+- **Real match scores**: Orchestrator builds `UserProfile` from extracted CV, calls `calculateMatchScore()` — no more fake `score: 100`
+- **Emojis in template**: Added throughout digest: header, stats, profile, job cards, empty state, footer
+- **CI email switch**: Changed from Resend to SMTP (Gmail App Password) — more reliable
+- **Workflow path fix**: Added `.github/workflows/**` to trigger paths — workflow changes now trigger runs
