@@ -3,7 +3,7 @@ name: Seahorse - Pipeline Principal
 on:
   schedule:
     # Weekly: Thursday at 9:00 AM UTC
-    - cron: '0 9 * * 4'
+    - cron: '0 9 * * 2,4'
   workflow_dispatch:
   push:
     branches: [main]
