@@ -8,6 +8,9 @@ import { useTranslation } from "@/lib/i18n";
 const locales = [
   { value: "en" as const, label: "English", short: "EN" },
   { value: "es" as const, label: "Español", short: "ES" },
+  { value: "pt" as const, label: "Português", short: "PT" },
+  { value: "fr" as const, label: "Français", short: "FR" },
+  { value: "de" as const, label: "Deutsch", short: "DE" },
 ];
 
 export function LanguageToggle() {

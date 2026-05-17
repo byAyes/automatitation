@@ -10,11 +10,14 @@ import {
 } from "react";
 import en from "./en.json";
 import es from "./es.json";
+import pt from "./pt.json";
+import fr from "./fr.json";
+import de from "./de.json";
 
-type Locale = "en" | "es";
+type Locale = "en" | "es" | "pt" | "fr" | "de";
 type TranslationMap = typeof en;
 
-const translations: Record<Locale, TranslationMap> = { en, es };
+const translations: Record<Locale, TranslationMap> = { en, es, pt, fr, de };
 
 function getNested(obj: unknown, path: string): string {
   const keys = path.split(".");
@@ -40,7 +43,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("locale") as Locale | null;
-    if (saved === "en" || saved === "es") {
+    if (saved === "en" || saved === "es" || saved === "pt" || saved === "fr" || saved === "de") {
       setLocaleState(saved);
     }
     setMounted(true);
