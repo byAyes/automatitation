@@ -19,6 +19,14 @@ on:
       - 'package.json'
       - 'scrapers.yaml'
       - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'cypress/**'
+      - 'package.json'
+      - 'cypress.config.ts'
+      - '.github/workflows/**'
 
 env:
   NODE_VERSION: '20'
