@@ -330,6 +330,8 @@ export default function PipelinePage() {
                 {steps.map((step, i) => (
                   <motion.div
                     key={step.id}
+                    data-testid="pipeline-step"
+                    data-status={step.status}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.08, type: 'spring', stiffness: 200 }}

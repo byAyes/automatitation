@@ -60,6 +60,7 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
+            data-testid="modal"
             className={cn(
               'relative w-full rounded-[--radius-modal] glass-strong shadow-modal border border-slate-200/50 dark:border-slate-700/50',
               sizeClasses[size],
@@ -71,6 +72,7 @@ export function Modal({
             {/* Close button */}
             <button
               onClick={onClose}
+              data-testid="modal-close"
               className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-dark-surface-tertiary transition-colors"
               aria-label="Cerrar"
             >

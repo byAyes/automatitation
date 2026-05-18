@@ -34,6 +34,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   return (
     <aside
+      data-testid="sidebar"
       className={cn(
         'fixed left-0 top-0 z-40 flex h-screen flex-col border-r bg-surface dark:bg-dark-surface dark:border-slate-800 transition-all duration-300',
         collapsed ? 'w-[60px]' : 'w-[240px]',
@@ -56,6 +57,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              data-testid="sidebar-link"
               className={cn(
                 'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
@@ -102,6 +104,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="border-t p-3 dark:border-slate-800">
         <button
           onClick={onToggle}
+          data-testid="sidebar-toggle"
           className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-surface-tertiary transition-colors"
         >
           <ChevronLeft

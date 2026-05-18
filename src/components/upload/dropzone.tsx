@@ -73,17 +73,15 @@ export function Dropzone({
 
   return (
     <div
+      data-testid="dropzone"
+      data-dragging={isDragging ? 'true' : 'false'}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => !file && inputRef.current?.click()}
       className={cn(
         'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-all duration-200',
-        isDragging
-          ? 'border-primary bg-primary-50 dark:bg-primary-50/5'
-          : file
-            ? 'border-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/5'
-            : 'border-slate-300 bg-slate-50/50 hover:border-slate-400 hover:bg-slate-100/50 dark:border-slate-600 dark:bg-dark-surface/50 dark:hover:border-slate-500 dark:hover:bg-dark-surface',
+        isDragging ? 'border-primary bg-primary-50 dark:bg-primary-50/5' : file ? 'border-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/5' : 'border-slate-300 bg-slate-50/50 hover:border-slate-400 hover:bg-slate-100/50 dark:border-slate-600 dark:bg-dark-surface/50 dark:hover:border-slate-500 dark:hover:bg-dark-surface',
       )}
     >
       <input

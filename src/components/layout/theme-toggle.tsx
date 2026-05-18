@@ -13,7 +13,7 @@ export function ThemeToggle() {
   // The FOUC script in layout.tsx prevents visible flash.
   if (!mounted) {
     return (
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg">
+      <div data-testid="theme-toggle" className="flex h-9 w-9 items-center justify-center rounded-lg">
         <div className="h-[18px] w-[18px]" />
       </div>
     );
@@ -22,6 +22,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
+      data-testid="theme-toggle"
       className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-dark-surface-tertiary transition-colors"
       aria-label={resolved === 'dark' ? t('settings.theme.light') : t('settings.theme.dark')}
     >

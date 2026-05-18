@@ -14,5 +14,10 @@ nul
 skills/
 tsconfig.tsbuildinfo
 
+# Cypress E2E test artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
 # Husky internal binaries (not committed)
 .husky/_
