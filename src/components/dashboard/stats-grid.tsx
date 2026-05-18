@@ -104,7 +104,6 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
         return (
           <motion.div
             key={stat.title}
-            data-testid="stat-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{

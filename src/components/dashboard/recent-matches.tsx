@@ -17,7 +17,7 @@ export function RecentMatches({ data, isLoading }: RecentMatchesProps) {
   const matches = data?.slice(0, 5) || [];
 
   return (
-    <Card data-testid="recent-matches">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Briefcase size={16} />

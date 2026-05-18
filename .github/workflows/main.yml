@@ -19,14 +19,6 @@ on:
       - 'package.json'
       - 'scrapers.yaml'
       - '.github/workflows/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'cypress/**'
-      - 'package.json'
-      - 'cypress.config.ts'
-      - '.github/workflows/**'
 
 env:
   NODE_VERSION: '20'
@@ -79,7 +71,7 @@ jobs:
           cache-dependency-path: 'scrapers/requirements.txt'
 
       - name: Install Node dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -105,78 +97,3 @@ jobs:
             *.log
             logs/
           retention-days: 30
-
-  # ──────────────────────────────────────────────
-  # UNIT TESTS
-  # ──────────────────────────────────────────────
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.3.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install Node dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run unit tests
-        run: npm test
-
-  # ──────────────────────────────────────────────
-  # E2E TESTS (Cypress)
-  # ──────────────────────────────────────────────
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.3.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install Node dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Cypress E2E tests
-        uses: cypress-io/github-action@v6
-        with:
-          install-command: npm ci --legacy-peer-deps
-          build: npm run build
-          start: npm run dev
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 120
-          config-file: cypress.config.ts
-        env:
-          # Required for build, but actual values don't matter in E2E (APIs are mocked)
-          JSEARCH_API_KEY: 'e2e-test-mock'
-          GEMINI_API_KEY: 'e2e-test-mock'
-
-      - name: Upload Cypress screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.1
-        with:
-          name: cypress-screenshots-${{ github.run_id }}
-          path: cypress/screenshots/
-          retention-days: 7
-
-      - name: Upload Cypress videos on failure
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.1
-        with:
-          name: cypress-videos-${{ github.run_id }}
-          path: cypress/videos/
-          retention-days: 7

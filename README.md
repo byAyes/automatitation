@@ -284,10 +284,8 @@ python -m scrapers.indeed --query "software engineer" --max 5
 
 ## Testing
 
-### Unit Tests (Jest)
-
 ```bash
-# Run all unit tests
+# Run all test suites
 npm test
 
 # Run tests in watch mode (re-runs on changes)
@@ -317,42 +315,6 @@ npx jest --verbose
 | `pdfProfileExtractor`   |   —   | Gemini AI profile extraction from PDF                                                                                                                  |
 
 **Setup:** Jest + ts-jest with a separate `tsconfig.test.json` (CommonJS) — the project's `tsconfig.json` is unaffected. All tests run cleanly with no external services or database required.
-
-### E2E Tests (Cypress)
-
-```bash
-# Run all E2E tests headlessly (requires dev server running)
-npm run test:e2e
-
-# Open Cypress Test Runner for interactive debugging
-npm run test:e2e:open
-```
-
-**Note:** The Cypress tests mock all API calls using `cy.intercept()`, so no real API keys or backend services are needed. The dev server must be running for E2E tests to work.
-
-### Cypress Test Coverage
-
-| Test File                  | Tests | What it covers                                                                                                          |
-| -------------------------- | :---: | ----------------------------------------------------------------------------------------------------------------------- |
-| `dashboard.cy.ts`          |  13   | Stat cards, trend chart, recent matches, score badges, quick actions, empty state, top skills                           |
-| `jobs.cy.ts`               |  11   | Jobs table, search filter, score filters (40/60/80%), column sorting, detail modal, score breakdown, empty state       |
-| `pipeline.cy.ts`           |   9   | 3 pipeline steps, API key warning, run button state, running state, live logs, completion summary, error state          |
-| `upload.cy.ts`             |   8   | Dropzone rendering, drag visual state, processing state, profile preview, size error, confirm/re-upload buttons         |
-| `settings.cy.ts`           |  10   | Profile form, API keys section, toggle visibility, email config, theme selector, language selector, save toasts         |
-| `navigation.cy.ts`         |   7   | Sidebar links (all 5 pages), active route highlight, sidebar collapse/expand toggle                                     |
-| `responsive.cy.ts`         |  10   | Mobile (375px), tablet (768px), desktop (1280px) — layout, sidebar, overflow                                             |
-| **Total**                  | **68** | 7 test files covering all 5 dashboard pages, navigation, and responsive layouts                                         |
-
-All E2E tests use `cy.intercept()` for deterministic API mocking — no real backend required. Screenshots and videos of failures are automatically captured and stored as CI artifacts.
-
-### CI/CD Pipeline
-
-The GitHub Actions workflow runs three jobs in parallel:
-- **Job Email Automation** — Full scraping + matching + email pipeline
-- **Unit Tests** — Jest unit tests (68 tests, 6 suites)
-- **E2E Tests** — Cypress E2E tests (68 tests, 7 files)
-
-E2E tests run via `cypress-io/github-action@v6` with the dev server started automatically and `wait-on` for readiness.
 
 ---
 
