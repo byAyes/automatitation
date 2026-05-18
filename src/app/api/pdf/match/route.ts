@@ -12,7 +12,7 @@ import { UserProfile, ExperienceLevel } from '../../../../types/user-profile';
 import { MatchedJob } from '../../../../types/job-match';
 import { ExtractedJob } from '../../../../types/pdf';
 import { authenticate } from '../../../../lib/auth/middleware';
-import { matchPDFJobs, savePDFMatches } from '../../../../lib/pdf/pdfIntegration';
+import { processPDFJobs } from '../../../../lib/pdf/pdfIntegration';
 import { parsePDF } from '../../../../lib/pdf/pdfParser';
 import { extractJobsFromText } from '../../../../lib/pdf/jobExtractor';
 
@@ -199,13 +199,20 @@ async function processExtractedJobs(
     error?: string;
   }>
 > {
-  // Match jobs against user profile
-  const matchedJobs = await matchPDFJobs(extractedJobs, userId, threshold);
+  // Convert ExtractedJob[] to PDFJob[] for processing
+  const pdfJobs = extractedJobs.map((job, index) => ({
+    id: `pdf-${index}-${Date.now()}`,
+    title: job.title,
+    company: job.company,
+    location: job.location || null,
+    description: job.description,
+    url: job.url || '',
+    salary: null,
+    postedAt: null,
+  }));
 
-  // Optionally save to database
-  if (saveToDb && matchedJobs.length > 0) {
-    await savePDFMatches(matchedJobs, userId);
-  }
+  // Match jobs against user profile
+  const matchedJobs = await processPDFJobs(pdfJobs);
 
   return NextResponse.json({
     matches: matchedJobs,
