@@ -5,7 +5,8 @@ node_modules
 # Runtime data (API keys, config, etc.)
 data/
 
-/src/generated/prisma
+# Local JSON data store (replaces Prisma/Supabase)
+.data/
 __pycache__/
 *.pyc
 .swarm/

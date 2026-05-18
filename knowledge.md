@@ -62,7 +62,7 @@ Actualmente el pipeline usa un mock de PrismaClient que retorna defaults vacíos
 - **Estructura:** `src/lib/local-data/` con stores individuales por entidad
 - **Compatibilidad:** `src/lib/prisma.ts` como wrapper sobre `LocalData`
 
-**Tracked in:** [#10 — Refactor a almacenamiento local JSON](https://github.com/byAyes/SeaHorse/issues/10)
+**Tracked in:** [#14 — Refactor a almacenamiento local JSON](https://github.com/byAyes/SeaHorse/issues/14)
 **Plan detallado:** `.planning/REFACTOR-local-database.md`
 
 ## Email Provider Configuration
@@ -118,7 +118,7 @@ Total per run: **~15–20 jobs** — failed scrapers don't crash the pipeline.
 
 | #   | Title                               | Link                                         |
 | --- | ----------------------------------- | -------------------------------------------- |
-| 10  | Refactor: Almacenamiento local JSON | https://github.com/byAyes/SeaHorse/issues/10 |
+| 14  | Refactor: Almacenamiento local JSON | https://github.com/byAyes/SeaHorse/issues/14 |
 
 ## Closed Issues
 
@@ -127,7 +127,7 @@ Total per run: **~15–20 jobs** — failed scrapers don't crash the pipeline.
 | 7   | AI PDF profile extraction | ✅ Implemented and working          |
 | 6   | process-cv pipeline       | ✅ Absorbed into #7 + #9            |
 | 8   | Frontend UI Dashboard     | ✅ Completado                       |
-| 9   | Integración Supabase      | 🔁 Reemplazado por #10 (local JSON) |
+| 9   | Integración Supabase      | 🔁 Reemplazado por #14 (local JSON) |
 
 ## Recent Fixes
 
