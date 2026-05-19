@@ -2,6 +2,7 @@ import { Job, ScraperConfig, PythonScraperConfig, ScraperStats } from './types';
 import { rateLimiter } from './utils/rateLimiter';
 import { JSearchScraper } from './strategies/jsearch';
 import { IndeedScraper } from './strategies/indeed';
+import { JinaReaderScraper } from './strategies/jinaReader';
 import { spawnPythonScraper, PythonScraperResult } from './bridge/pythonBridge';
 import { logger } from '../lib/automation/logger';
 import * as fs from 'fs';
@@ -20,18 +21,19 @@ function loadPythonScraperConfigs(): PythonScraperConfig[] {
 
   if (!parsed?.scrapers) return [];
 
-  return Object.entries(parsed.scrapers as Record<string, unknown>).map(
-    ([name, cfg]: [string, Record<string, unknown>]) => ({
+  return Object.entries(parsed.scrapers as Record<string, unknown>).map(([name, cfg]) => {
+    const config = cfg as Record<string, unknown>;
+    return {
       name,
-      module: (cfg.module as string) || `scrapers.${name}`,
+      module: (config.module as string) || `scrapers.${name}`,
       className:
-        (cfg.className as string) || `${name.charAt(0).toUpperCase() + name.slice(1)}Scraper`,
-      enabled: (cfg.enabled as boolean) !== false,
-      maxJobs: (cfg.max_jobs as number) || 10,
-      rateLimitMs: (cfg.rate_limit_ms as number) || 5000,
-      extra: cfg as Record<string, unknown>,
-    }),
-  );
+        (config.className as string) || `${name.charAt(0).toUpperCase() + name.slice(1)}Scraper`,
+      enabled: (config.enabled as boolean) !== false,
+      maxJobs: (config.max_jobs as number) || 10,
+      rateLimitMs: (config.rate_limit_ms as number) || 5000,
+      extra: config,
+    };
+  });
 }
 
 export class ScraperRunner {
@@ -93,6 +95,13 @@ export class ScraperRunner {
           error: result.reason?.message || 'Unknown rejection',
         });
       }
+    }
+
+    // Step 3: JinaReader fallback for sources that returned 0 jobs
+    // LinkedIn and Indeed are the primary candidates — they're often blocked
+    const fallbackSources = this.identifyFailedSources();
+    if (fallbackSources.length > 0) {
+      await this.runJinaReaderFallbacks(fallbackSources);
     }
 
     logger.info(
@@ -184,6 +193,104 @@ export class ScraperRunner {
     }
   }
 
+  /**
+   * Identify which sources returned 0 jobs and should use JinaReader fallback.
+   * Checks the stats from the current scrape run.
+   */
+  private identifyFailedSources(): string[] {
+    const fallbackCandidates = ['linkedin', 'indeed', 'computrabajo', 'glassdoor'];
+    const failed: string[] = [];
+
+    for (const source of fallbackCandidates) {
+      const sourceStats = this.stats.filter((s) => s.scraper === source);
+      // Fail if: all attempts failed OR all returned 0 jobs
+      const allFailed = sourceStats.every((s) => !s.success);
+      const allEmpty = sourceStats.every((s) => s.success && s.jobCount === 0);
+
+      if (allFailed || allEmpty) {
+        failed.push(source);
+        logger.info(
+          `[Fallback] ${source} needs fallback (failed: ${allFailed}, empty: ${allEmpty})`,
+        );
+      }
+    }
+
+    return failed;
+  }
+
+  /**
+   * Run JinaReader as fallback for sources that failed during normal scraping.
+   * Deduplicates results against already-collected jobs.
+   */
+  private async runJinaReaderFallbacks(sources: string[]): Promise<void> {
+    for (const source of sources) {
+      // Rebuild keys before each fallback to catch jobs added by previous fallbacks
+      const existingKeys = new Set(
+        this.allJobs.map((j) => `${j.title.toLowerCase()}|${j.company.toLowerCase()}`),
+      );
+      const start = Date.now();
+      try {
+        logger.info(`[Fallback] Trying JinaReader for: ${source}`);
+        const scraper = new JinaReaderScraper(source);
+        const result = await scraper.scrape(this.config);
+        const duration = Date.now() - start;
+
+        if (result.success && result.data && result.data.length > 0) {
+          // Add only jobs that don't already exist (dedup across sources)
+          const newJobs = result.data.filter((job) => {
+            const key = `${job.title.toLowerCase()}|${job.company.toLowerCase()}`;
+            return !existingKeys.has(key);
+          });
+
+          if (newJobs.length > 0) {
+            this.allJobs.push(...newJobs);
+            // Add newly seen keys
+            for (const job of newJobs) {
+              existingKeys.add(`${job.title.toLowerCase()}|${job.company.toLowerCase()}`);
+            }
+            logger.success(
+              `[Fallback] JinaReader-${source}: ${newJobs.length} new jobs (${result.data.length} total found, ${result.data.length - newJobs.length} duplicates skipped)`,
+            );
+          } else {
+            logger.info(
+              `[Fallback] JinaReader-${source}: ${result.data.length} found but all duplicates`,
+            );
+          }
+
+          this.stats.push({
+            scraper: `jinareader-${source}`,
+            success: true,
+            jobCount: newJobs.length,
+            duration,
+          });
+        } else {
+          logger.warning(
+            `[Fallback] JinaReader-${source} returned no results: ${result.error || 'empty'}`,
+          );
+          this.stats.push({
+            scraper: `jinareader-${source}`,
+            success: false,
+            jobCount: 0,
+            duration,
+            error: result.error,
+          });
+        }
+      } catch (error) {
+        const duration = Date.now() - start;
+        logger.warning(
+          `[Fallback] JinaReader-${source} threw: ${error instanceof Error ? error.message : 'Unknown'}`,
+        );
+        this.stats.push({
+          scraper: `jinareader-${source}`,
+          success: false,
+          jobCount: 0,
+          duration,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  }
+
   async saveToJSON(outputPath: string): Promise<void> {
     const dir = path.dirname(outputPath);
     if (!fs.existsSync(dir)) {
@@ -213,9 +320,13 @@ export async function runScrapers(config: ScraperConfig, outputPath?: string): P
   return jobs;
 }
 
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-if (process.argv[1] === __filename) {
+// CLI execution check — avoid import.meta.url for Jest compatibility
+if (
+  process.argv[1] &&
+  !process.env.JEST_WORKER_ID &&
+  (process.argv[1].replace(/\\/g, '/').endsWith('index.ts') ||
+    process.argv[1].replace(/\\/g, '/').endsWith('index.js'))
+) {
   const query = process.argv[2] || 'software engineer';
   const maxJobs = parseInt(process.argv[3] || '10', 10);
   const output = process.argv[4] || 'data/jobs.json';

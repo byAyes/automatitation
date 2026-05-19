@@ -7,16 +7,17 @@
 
 ## Overview
 
-| #   | Phase                                          | Goal                                                                   | Status             | Issues |
-| --- | ---------------------------------------------- | ---------------------------------------------------------------------- | ------------------ | ------ |
-| 1   | Job Board Scraper                              | Scrape jobs from LinkedIn, Indeed, Glassdoor, Computrabajo, JSearch    | ✅ **Complete**    | —      |
-| 2   | AI Job Matching                                | Score jobs against user profile with weighted algorithm                | ✅ **Complete**    | —      |
-| 3   | Email Notifications                            | Send weekly digests with HTML template + emojis                        | ✅ **Complete**    | —      |
-| 4   | Automation & Scheduling                        | GitHub Actions weekly pipeline                                         | ✅ **Complete**    | —      |
-| 5   | PDF Profile Extraction                         | Extract job profile from CV/PDF with Gemini AI                         | ✅ **Complete**    | #7 ✅  |
-| 6   | ~~Supabase Database Integration~~ (IPv6 block) | 🔴 **Cancelado** → reemplazado por Fase 8                              | #9 🔁 #10          |
-| 7   | Frontend UI Dashboard                          | React SPA for pipeline management                                      | ✅ **Complete**    | #8 ✅  |
-| 8   | **Refactor: Almacenamiento Local JSON**        | Reemplazar Prisma + Supabase por archivos JSON locales, 0 config de DB | 🔜 **Planificado** | #10    |
+| #   | Phase                                          | Goal                                                                                    | Status             | Issues |
+| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ------ |
+| 1   | Job Board Scraper                              | Scrape jobs from LinkedIn, Indeed, Glassdoor, Computrabajo, JSearch                     | ✅ **Complete**    | —      |
+| 2   | AI Job Matching                                | Score jobs against user profile with weighted algorithm                                 | ✅ **Complete**    | —      |
+| 3   | Email Notifications                            | Send weekly digests with HTML template + emojis                                         | ✅ **Complete**    | —      |
+| 4   | Automation & Scheduling                        | GitHub Actions weekly pipeline                                                          | ✅ **Complete**    | —      |
+| 5   | PDF Profile Extraction                         | Extract job profile from CV/PDF with Gemini AI                                          | ✅ **Complete**    | #7 ✅  |
+| 6   | ~~Supabase Database Integration~~ (IPv6 block) | 🔴 **Cancelado** → reemplazado por Fase 8                                               | #9 🔁 #10          |
+| 7   | Frontend UI Dashboard                          | React SPA for pipeline management                                                       | ✅ **Complete**    | #8 ✅  |
+| 8   | **Refactor: Almacenamiento Local JSON**        | Reemplazar Prisma + Supabase por archivos JSON locales, 0 config de DB                  | 🔜 **Planificado** | #10    |
+| 9   | **Jina Reader Fallback Scraper**               | Headless Chrome fallback via Jina Reader para LinkedIn, Indeed, Glassdoor, Computrabajo | ✅ **Complete**    | —      |
 
 ---
 
@@ -26,13 +27,14 @@
 
 **Sources:**
 
-| Scraper      | Type               | Status              | Notes                           |
-| ------------ | ------------------ | ------------------- | ------------------------------- |
-| JSearch API  | REST API           | ✅ **Working**      | ~10 jobs per run, free tier     |
-| Computrabajo | Python (Scrapling) | ✅ **Working**      | ~10 jobs per run                |
-| Indeed       | Python (Scrapling) | ⚠️ **Intermittent** | 403/blocking, fallback graceful |
-| LinkedIn     | Python (Scrapling) | ⚠️ **Intermittent** | Login wall/rate limits          |
-| Glassdoor    | Python (Scrapling) | ⚠️ **Intermittent** | Anti-bot measures               |
+| Scraper      | Type               | Status              | Notes                                                                          |
+| ------------ | ------------------ | ------------------- | ------------------------------------------------------------------------------ |
+| JSearch API  | REST API           | ✅ **Working**      | ~10 jobs per run, free tier                                                    |
+| Computrabajo | Python (Scrapling) | ✅ **Working**      | ~10 jobs per run                                                               |
+| Indeed       | Python (Scrapling) | ⚠️ **Intermittent** | 403/blocking, fallback graceful                                                |
+| LinkedIn     | Python (Scrapling) | ⚠️ **Intermittent** | Login wall/rate limits                                                         |
+| Glassdoor    | Python (Scrapling) | ⚠️ **Intermittent** | Anti-bot measures                                                              |
+| Jina Reader  | Headless Chrome    | ✅ **Fallback**     | Computrabajo: ✅ 5 jobs/test<br>LinkedIn: ❌ 451 cloud<br>Indeed: ❌ 403 cloud |
 
 **Features:**
 
@@ -41,6 +43,7 @@
 - ✅ HTTP fallback scraper for basic sites
 - ✅ Configurable via `scrapers.yaml`
 - ✅ Graceful degradation — failed scrapers don't crash the pipeline
+- ✅ **Jina Reader headless Chrome fallback** — rescata jobs de fuentes que fallaron
 
 ---
 
@@ -251,6 +254,7 @@ src/lib/local-data/
 | **10** | [REFACTOR] Almacenamiento local JSON | 🟢 **Open**                         | Phase 8 |
 | **9**  | [BACKEND] Integración Supabase       | 🔵 **Closed** (reemplazado por #10) | Phase 6 |
 | **8**  | [FEATURE] Frontend UI Dashboard      | 🔵 **Closed** ✅                    | Phase 7 |
+| **9**  | [FEATURE] Jina Reader fallback       | ✅ **Implemented**                  | Phase 1 |
 | **7**  | [FEATURE] AI PDF profile extraction  | 🔵 **Closed** ✅                    | Phase 5 |
 | **6**  | [DEFERRED] process-cv pipeline       | 🔵 **Closed** — absorbed            | Phase 6 |
 
@@ -288,7 +292,7 @@ src/lib/local-data/
 | Layer    | Technology                                        | Status               |
 | -------- | ------------------------------------------------- | -------------------- |
 | Runtime  | TypeScript (CommonJS) + tsx                       | ✅                   |
-| Scrapers | Python (Scrapling) + JSearch API                  | ✅                   |
+| Scrapers | Python (Scrapling) + JSearch API + Jina Reader    | ✅                   |
 | AI       | Gemini Flash + keyword fallback                   | ✅                   |
 | Scoring  | Weighted (40/30/20/10)                            | ✅                   |
 | Email    | SMTP · Resend · Gmail API                         | ✅                   |
@@ -298,4 +302,4 @@ src/lib/local-data/
 
 ---
 
-_Maintained by AI assistant — last updated 2026-05-15_
+_Maintained by AI assistant — last updated 2026-07-15_
