@@ -1,31 +1,69 @@
 'use client';
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { PageTransitionProvider, usePageTransition, getPageVariants } from '@/lib/page-transitions';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = React.useState(false);
-  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+    <PageTransitionProvider>
+      <InnerLayout
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
+        mobileOpen={mobileOpen}
+        onMobileToggle={() => setMobileOpen(!mobileOpen)}
+        onMobileClose={() => setMobileOpen(false)}
+      >
+        {children}
+      </InnerLayout>
+    </PageTransitionProvider>
+  );
+}
+
+function InnerLayout({
+  collapsed,
+  onToggle,
+  mobileOpen,
+  onMobileToggle,
+  onMobileClose,
+  children,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  mobileOpen: boolean;
+  onMobileToggle: () => void;
+  onMobileClose: () => void;
+  children: React.ReactNode;
+}) {
+  const { direction, transitionKey } = usePageTransition();
+  const variants = getPageVariants(direction);
+
+  return (
+    <div className="flex min-h-screen mobile-nav-spacer">
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={onToggle}
+        mobileOpen={mobileOpen}
+        onMobileClose={onMobileClose}
+      />
       <div
-        className="flex flex-1 flex-col transition-all duration-300"
+        className="flex flex-1 flex-col transition-all duration-300 lg:ml-0"
         style={{ marginLeft: collapsed ? 60 : 240 }}
       >
-        <Header />
+        <Header onMobileToggle={onMobileToggle} />
         <main className="flex-1">
           <AnimatePresence mode="wait">
             <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              key={transitionKey}
+              variants={variants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
             >
               {children}
             </motion.div>

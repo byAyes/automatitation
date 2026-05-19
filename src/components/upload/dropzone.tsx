@@ -78,7 +78,7 @@ export function Dropzone({
       onDrop={handleDrop}
       onClick={() => !file && inputRef.current?.click()}
       className={cn(
-        'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-all duration-200',
+        'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 sm:p-12 transition-all duration-200',
         isDragging
           ? 'border-primary bg-primary-50 dark:bg-primary-50/5'
           : file

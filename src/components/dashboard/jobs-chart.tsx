@@ -81,10 +81,15 @@ export function JobsChart({ data, isLoading, trend }: JobsChartProps) {
   const avgPerDay = filteredData.length > 0 ? Math.round(totalInRange / filteredData.length) : 0;
 
   return (
-    <Card className="lg:col-span-2">
+    <Card className="lg:col-span-2 relative overflow-hidden">
+      {/* Subtle gradient border accent */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle>Tendencia de Jobs</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary shadow-sm shadow-primary/30" />
+            Tendencia de Jobs
+          </CardTitle>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400">~{avgPerDay} jobs/día</span>
             {trend !== undefined && trend !== 0 && (

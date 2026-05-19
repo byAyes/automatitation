@@ -92,7 +92,16 @@ export default function JobsPage() {
   }, [data, search, sortKey, sortDir, scoreFilter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 relative">
+      {/* Ambient page accent */}
+      <div
+        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.06) 0%, transparent 70%)',
+        }}
+      />
+
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-xl font-semibold">{t('jobs.title')}</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -103,8 +112,8 @@ export default function JobsPage() {
       {/* Filters */}
       <Card>
         <CardContent className="pt-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="relative w-full sm:flex-1 min-w-0">
               <Search
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -113,11 +122,11 @@ export default function JobsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('jobs.search')}
-                className="pl-9"
+                className="pl-9 w-full"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal size={14} className="text-slate-400" />
+            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
+              <SlidersHorizontal size={14} className="text-slate-400 shrink-0" />
               {[0, 40, 60, 80].map((v) => (
                 <motion.button
                   key={v}
@@ -128,7 +137,7 @@ export default function JobsPage() {
                     scale: scoreFilter === v ? 1.05 : 1,
                   }}
                   transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  className={`rounded-full px-2.5 sm:px-3 py-1 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${
                     scoreFilter === v
                       ? 'bg-primary text-white shadow-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-dark-surface-tertiary dark:text-slate-400'
@@ -162,8 +171,8 @@ export default function JobsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm min-w-[640px] sm:min-w-0">
                 <thead>
                   <tr className="border-b dark:border-slate-800">
                     <th
@@ -222,16 +231,16 @@ export default function JobsPage() {
                       className="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800/50 dark:hover:bg-dark-surface-tertiary/50 cursor-pointer transition-colors origin-left"
                       onClick={() => setSelectedJob(match)}
                     >
-                      <td className="px-4 py-3">
-                        <p className="font-medium truncate max-w-[200px]">{match.job.title}</p>
+                      <td className="px-3 sm:px-4 py-3">
+                        <p className="font-medium truncate max-w-[140px] sm:max-w-[200px]">{match.job.title}</p>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      <td className="px-3 sm:px-4 py-3 text-slate-600 dark:text-slate-400 hidden sm:table-cell">
                         <span className="inline-flex items-center gap-1">
                           <Building2 size={12} />
                           {match.job.company}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-500">
+                      <td className="px-3 sm:px-4 py-3 text-slate-500 hidden sm:table-cell">
                         {match.job.location && (
                           <span className="inline-flex items-center gap-1">
                             <MapPin size={12} />
@@ -239,19 +248,19 @@ export default function JobsPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <ScoreBadge score={match.score.overall} />
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      <td className="px-3 sm:px-4 py-3 text-slate-600 dark:text-slate-400 hidden sm:table-cell">
                         {match.job.salary ? formatSalary(match.job.salary) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
+                      <td className="px-3 sm:px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">
                         <span className="inline-flex items-center gap-1">
                           <Calendar size={12} />
                           {formatDate(match.job.scrapedAt)}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -283,7 +292,7 @@ export default function JobsPage() {
         {selectedJob && (
           <div className="space-y-5">
             {/* Score Breakdown */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { label: t('jobs.modal.skills'), value: selectedJob.score.skillMatch },
                 { label: t('jobs.modal.interests'), value: selectedJob.score.interestMatch },

@@ -27,10 +27,10 @@ export function ThemeToggle() {
     >
       <motion.div
         key={resolved}
-        initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+        initial={{ rotate: -90, opacity: 0, scale: 0.85 }}
         animate={{ rotate: 0, opacity: 1, scale: 1 }}
-        exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-        transition={{ duration: 0.2 }}
+        exit={{ rotate: 90, opacity: 0, scale: 0.85 }}
+        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
       >
         {resolved === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
       </motion.div>

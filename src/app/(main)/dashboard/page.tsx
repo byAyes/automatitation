@@ -71,19 +71,28 @@ export default function DashboardPage() {
   }, [refetch]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 relative">
+      {/* Ambient page accent */}
+      <div
+        className="absolute top-0 right-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.06) 0%, transparent 70%)',
+        }}
+      />
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between flex-wrap gap-3"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
-        <div>
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Sparkles size={20} className="text-primary" />
-            Dashboard
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+            <Sparkles size={18} className="text-primary shrink-0" />
+            <span className="truncate">Dashboard</span>
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             {t('dashboard.subtitle')}
           </p>
           {lastRefreshed && (
@@ -93,7 +102,7 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefetching}>
             <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />{' '}
             {isRefetching ? t('dashboard.refreshing') : t('dashboard.refresh')}
@@ -104,7 +113,7 @@ export default function DashboardPage() {
               {t('dashboard.uploadCv')}
             </Button>
           </Link>
-          <Link href="/pipeline">
+          <Link href="/pipeline" className="hidden sm:inline-flex">
             <Button size="sm" variant="secondary">
               <PlayCircle size={14} />
               {t('dashboard.runPipeline')}
@@ -114,23 +123,23 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         {quickActions.map((action, i) => (
           <Link key={action.labelKey} href={action.href}>
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.3 }}
-              className="group flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
+              className="group flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 sm:p-3 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
             >
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${action.lightColor}`}
+                className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shrink-0 ${action.lightColor}`}
               >
                 {action.icon}
               </div>
-              <div>
-                <p className="text-sm font-medium">{t(action.labelKey)}</p>
-                <p className="text-xs text-slate-400">{t(action.descKey)}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{t(action.labelKey)}</p>
+                <p className="text-xs text-slate-400 truncate">{t(action.descKey)}</p>
               </div>
             </motion.div>
           </Link>
@@ -155,13 +164,13 @@ export default function DashboardPage() {
       />
 
       {/* Chart + Recent */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <JobsChart data={stats?.jobsByDay} isLoading={isLoading} trend={stats?.jobTrend} />
         <RecentMatches data={stats?.recentMatches} isLoading={isLoading} />
       </div>
 
       {/* Bottom Row: Top Skills + Last Pipeline Run */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Top Skills */}
         <Card>
           <CardHeader>
@@ -175,9 +184,9 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20 sm:w-24" />
                     <Skeleton className="h-4 flex-1" />
-                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-6 sm:w-8" />
                   </div>
                 ))}
               </div>
@@ -196,7 +205,7 @@ export default function DashboardPage() {
                   const barWidth = maxCount > 0 ? Math.max(8, (skill.count / maxCount) * 100) : 0;
                   return (
                     <div key={skill.skill} className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-600 dark:text-slate-400 w-24 truncate text-right flex-shrink-0">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400 w-20 sm:w-24 truncate text-right flex-shrink-0">
                         {skill.skill}
                       </span>
                       <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
@@ -239,11 +248,11 @@ export default function DashboardPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-4 w-64" />
+                <Skeleton className="h-5 w-40 sm:w-48" />
+                <Skeleton className="h-4 w-48 sm:w-64" />
               </div>
             ) : stats?.lastPipelineRun ? (
-              <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">
                     {formatDate(stats.lastPipelineRun.startedAt)}
@@ -271,7 +280,7 @@ export default function DashboardPage() {
                     )}
                   </Badge>
                   {stats.lastPipelineRun.error && (
-                    <span className="text-xs text-red-500">{stats.lastPipelineRun.error}</span>
+                    <span className="text-xs text-red-500 truncate max-w-[120px] sm:max-w-none">{stats.lastPipelineRun.error}</span>
                   )}
                   <ScoreBadge score={stats.lastPipelineRun.matched} />
                   <Badge variant="outline" className="gap-1">
@@ -285,16 +294,16 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-4 py-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0">
                   <PlayCircle size={20} className="text-slate-400" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-500">{t('dashboard.noRuns')}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{t('dashboard.noRunsDesc')}</p>
                 </div>
-                <Link href="/pipeline" className="ml-auto">
-                  <Button size="sm">
+                <Link href="/pipeline" className="sm:ml-auto w-full sm:w-auto">
+                  <Button size="sm" className="w-full sm:w-auto">
                     <PlayCircle size={14} />
                     {t('dashboard.execute')}
                   </Button>

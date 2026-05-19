@@ -1,0 +1,101 @@
+'use client';
+
+import { createContext, useContext, useRef, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import type { Variants } from 'framer-motion';
+
+export type NavDirection = 'forward' | 'backward' | 'none';
+
+interface PageTransitionContextValue {
+  direction: NavDirection;
+  /** Unique key derived from pathname + direction, triggers AnimatePresence re-animation */
+  transitionKey: string;
+}
+
+export const PageTransitionContext = createContext<PageTransitionContextValue>({
+  direction: 'none',
+  transitionKey: '',
+});
+
+export function usePageTransition() {
+  return useContext(PageTransitionContext);
+}
+
+/**
+ * Tracks navigation direction (forward/back) by comparing pathnames
+ * on each render. Provides a context value for AnimatePresence to consume.
+ */
+export function PageTransitionProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const prevPathRef = useRef(pathname);
+  const [direction, setDirection] = useState<NavDirection>('none');
+
+  // Detect navigation direction on pathname change
+  useEffect(() => {
+    const prevPath = prevPathRef.current;
+    if (prevPath !== pathname) {
+      const currentSegments = pathname.split('/').filter(Boolean);
+      const prevSegments = prevPath.split('/').filter(Boolean);
+
+      const navDir: NavDirection =
+        currentSegments.length < prevSegments.length ? 'backward' : 'forward';
+
+      setDirection(navDir);
+      prevPathRef.current = pathname;
+    }
+  }, [pathname]);
+
+  const transitionKey = `${pathname}-${direction}`;
+
+  return (
+    <PageTransitionContext.Provider value={{ direction, transitionKey }}>
+      {children}
+    </PageTransitionContext.Provider>
+  );
+}
+
+/**
+ * Shared page transition variants — direction-aware.
+ * Forward: content enters from right, exits to left.
+ * Backward: content enters from left, exits to right.
+ */
+export function getPageVariants(direction: NavDirection): Variants {
+  const isForward = direction === 'forward' || direction === 'none';
+  const xOffset = isForward ? 40 : -40;
+  const xExitOffset = isForward ? -30 : 30;
+
+  return {
+    initial: {
+      opacity: 0,
+      x: xOffset,
+      y: 8,
+      scale: 0.98,
+      filter: 'blur(2px)',
+    },
+    animate: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      scale: 1,
+      filter: 'blur(0px)',
+      transition: {
+        duration: 0.3,
+        ease: [0.23, 1, 0.32, 1],
+        opacity: { duration: 0.25 },
+        filter: { duration: 0.25 },
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: xExitOffset,
+      y: -6,
+      scale: 0.97,
+      filter: 'blur(3px)',
+      transition: {
+        duration: 0.15,
+        ease: 'easeOut',
+        opacity: { duration: 0.12 },
+      },
+    },
+  };
+}

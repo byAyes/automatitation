@@ -3,17 +3,20 @@ import { cn } from '@/lib/utils';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
+  variant?: 'default' | 'raised';
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hover = false, children, ...props }, ref) => {
+  ({ className, hover = false, variant = 'default', children, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
           'rounded-[--radius-card] border bg-surface p-6 shadow-card dark:bg-dark-surface-secondary dark:border-slate-700/50',
+          variant === 'raised' &&
+            'card-raised border-slate-200/80 dark:border-slate-700/60',
           hover &&
-            'transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 hover:border-primary/20 hover:dark:border-primary/10',
+            'transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 hover:border-primary/20 dark:hover:border-primary/10',
           className,
         )}
         {...props}
@@ -36,7 +39,11 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('text-lg font-semibold leading-tight tracking-tight', className)}
+      className={cn(
+        'text-base font-bold leading-tight tracking-tight',
+        className,
+      )}
+      style={{ fontFamily: 'var(--font-heading)' }}
       {...props}
     />
   ),

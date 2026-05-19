@@ -17,9 +17,9 @@ interface ModalProps {
 
 const sizeClasses = {
   sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
+  md: 'max-w-[calc(100%-2rem)] sm:max-w-md',
+  lg: 'max-w-[calc(100%-2rem)] sm:max-w-lg',
+  xl: 'max-w-[calc(100%-2rem)] sm:max-w-xl',
 };
 
 export function Modal({
@@ -49,7 +49,7 @@ export function Modal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
             className="absolute inset-0 bg-black/50 dark:bg-black/60"
             onClick={onClose}
           />
@@ -58,8 +58,8 @@ export function Modal({
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            exit={{ opacity: 0, scale: 0.93, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1], exit: { duration: 0.12, ease: 'easeOut' } }}
             className={cn(
               'relative w-full rounded-[--radius-modal] glass-strong shadow-modal border border-slate-200/50 dark:border-slate-700/50',
               sizeClasses[size],

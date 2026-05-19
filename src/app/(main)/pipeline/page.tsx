@@ -243,27 +243,36 @@ export default function PipelinePage() {
   const topMatches = result?.matches?.slice(0, 5) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Ambient page accent */}
+      <div
+        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.06) 0%, transparent 70%)',
+        }}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
-        <div>
-          <h2 className="text-xl font-semibold">{t('pipeline.title')}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-semibold truncate">{t('pipeline.title')}</h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             {t('pipeline.subtitle')}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetPipeline} disabled={isRunning}>
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+          <Button variant="outline" onClick={resetPipeline} disabled={isRunning} size="sm">
             <RefreshCw size={14} />
             {t('pipeline.reset')}
           </Button>
           <Button
             onClick={runPipeline}
             disabled={isRunning || runPipelineMutation.isPending || hasAiKey === false}
-            size="lg"
+            size="sm"
             title={hasAiKey === false ? t('pipeline.apiKeyRequiredDesc') : undefined}
           >
             {runPipelineMutation.isPending ? (
@@ -587,7 +596,7 @@ export default function PipelinePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[500px] overflow-y-auto rounded-b-[--radius-card] bg-slate-950 p-4 font-mono text-xs leading-relaxed">
+              <div className="h-[300px] sm:h-[400px] lg:h-[500px] overflow-y-auto rounded-b-[--radius-card] bg-slate-950 p-4 font-mono text-xs leading-relaxed">
                 <AnimatePresence mode="popLayout">
                   {displayedLogs.map((log, i) => (
                     <motion.div

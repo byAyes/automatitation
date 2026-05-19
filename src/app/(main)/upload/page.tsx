@@ -8,7 +8,7 @@ import { Dropzone } from '@/components/upload/dropzone';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useToastStore, ToastContainer } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/toast';
 import { useUploadCv, useProcessCv, useMatchJobs, DEFAULT_USER_ID } from '@/lib/api-client';
 
 export default function UploadPage() {
@@ -25,7 +25,7 @@ export default function UploadPage() {
   // API key resolution is handled server-side via config store
   // (saved via Settings page) or environment variables.
 
-  const { toasts, showToast, dismissToast } = useToastStore();
+  const { showToast } = useToast();
 
   const handleFileSelect = useCallback(
     async (selectedFile: File) => {
@@ -65,8 +65,15 @@ export default function UploadPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    <div className="space-y-6 relative">
+      {/* Ambient page accent */}
+      <div
+        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.06) 0%, transparent 70%)',
+        }}
+      />
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         {' '}

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import { LanguageProvider } from '@/lib/i18n';
+import { ToastProvider } from '@/components/ui/toast';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -31,7 +32,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

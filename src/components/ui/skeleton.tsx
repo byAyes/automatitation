@@ -8,7 +8,7 @@ export function Skeleton({ className, variant = 'text', ...props }: SkeletonProp
   return (
     <div
       className={cn(
-        'animate-pulse rounded-md bg-slate-200 dark:bg-dark-surface-tertiary',
+        'shimmer rounded-md',
         variant === 'circular' && 'rounded-full',
         variant === 'text' && 'h-4 w-full',
         className,

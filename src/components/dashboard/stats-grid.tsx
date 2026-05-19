@@ -22,6 +22,16 @@ function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number })
     const startTime = Date.now() + delay * 1000;
     const targetValue = value;
 
+    // Respect prefers-reduced-motion
+    const prefersReducedMotion = typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+
+    if (prefersReducedMotion) {
+      setDisplayed(value);
+      return;
+    }
+
     const tick = () => {
       const elapsed = Date.now() - startTime;
       if (elapsed <= 0) {
@@ -89,7 +99,7 @@ interface StatsGridProps {
 export function StatsGrid({ data, isLoading }: StatsGridProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <CardSkeleton key={i} />
         ))}
@@ -98,7 +108,7 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {statsConfig.map((stat, index) => {
         const value = data ? (((data as Record<string, unknown>)[stat.key] as number) ?? 0) : 0;
         return (
@@ -112,8 +122,16 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
               ease: 'easeOut',
             }}
           >
-            <Card hover>
-              <div className="flex items-start justify-between">
+            <Card hover className="relative overflow-hidden group">
+              {/* Gradient shine overlay */}
+              <div
+                className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent, rgba(255,255,255,0.25) 50%, transparent)',
+                }}
+              />
+              <div className="relative flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     {stat.title}
@@ -127,7 +145,7 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
                         type: 'spring',
                         stiffness: 200,
                       }}
-                      className="text-3xl font-bold tracking-tight tabular-nums"
+                      className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums"
                     >
                       <AnimatedNumber value={value} delay={index * 0.1 + 0.2} />
                     </motion.span>
@@ -152,7 +170,7 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
                   <p className="mt-1 text-xs text-slate-400">{stat.subtitle}</p>
                 </div>
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.color}`}
+                  className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${stat.color} group-hover:scale-110 transition-transform duration-200`}
                 >
                   {stat.icon}
                 </div>

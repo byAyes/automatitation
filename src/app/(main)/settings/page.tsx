@@ -21,14 +21,14 @@ import { Input } from '@/components/ui/input';
 import { useProfile, useUpdateProfile, DEFAULT_USER_ID } from '@/lib/api-client';
 import { useTheme } from '@/components/layout/theme-provider';
 import { useTranslation } from '@/lib/i18n';
-import { useToastStore, ToastContainer } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/toast';
 
 export default function SettingsPage() {
   const { t, locale, setLocale } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
-  const { toasts, showToast, dismissToast } = useToastStore();
+  const { showToast } = useToast();
 
   // Profile form
   const [skillsInput, setSkillsInput] = useState('');
@@ -160,8 +160,15 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    <div className="space-y-6 relative">
+      {/* Ambient page accent */}
+      <div
+        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.06) 0%, transparent 70%)',
+        }}
+      />
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-xl font-semibold">{t('settings.title')}</h2>
@@ -396,7 +403,7 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {themeOptions.map((opt) => (
                   <motion.button
                     key={opt.value}
@@ -444,7 +451,7 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {languages.map((lang) => {
                   const active = lang.value === locale;
                   return (
