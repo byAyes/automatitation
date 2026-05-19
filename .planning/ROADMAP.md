@@ -7,17 +7,17 @@
 
 ## Overview
 
-| #   | Phase                                          | Goal                                                                                    | Status             | Issues |
-| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ------ |
-| 1   | Job Board Scraper                              | Scrape jobs from LinkedIn, Indeed, Glassdoor, Computrabajo, JSearch                     | ✅ **Complete**    | —      |
-| 2   | AI Job Matching                                | Score jobs against user profile with weighted algorithm                                 | ✅ **Complete**    | —      |
-| 3   | Email Notifications                            | Send weekly digests with HTML template + emojis                                         | ✅ **Complete**    | —      |
-| 4   | Automation & Scheduling                        | GitHub Actions weekly pipeline                                                          | ✅ **Complete**    | —      |
-| 5   | PDF Profile Extraction                         | Extract job profile from CV/PDF with Gemini AI                                          | ✅ **Complete**    | #7 ✅  |
-| 6   | ~~Supabase Database Integration~~ (IPv6 block) | 🔴 **Cancelado** → reemplazado por Fase 8                                               | #9 🔁 #10          |
-| 7   | Frontend UI Dashboard                          | React SPA for pipeline management                                                       | ✅ **Complete**    | #8 ✅  |
-| 8   | **Refactor: Almacenamiento Local JSON**        | Reemplazar Prisma + Supabase por archivos JSON locales, 0 config de DB                  | 🔜 **Planificado** | #10    |
-| 9   | **Jina Reader Fallback Scraper**               | Headless Chrome fallback via Jina Reader para LinkedIn, Indeed, Glassdoor, Computrabajo | ✅ **Complete**    | —      |
+| #   | Phase                                          | Goal                                                                                    | Status          | Issues |
+| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | ------ |
+| 1   | Job Board Scraper                              | Scrape jobs from LinkedIn, Indeed, Glassdoor, Computrabajo, JSearch                     | ✅ **Complete** | —      |
+| 2   | AI Job Matching                                | Score jobs against user profile with weighted algorithm                                 | ✅ **Complete** | —      |
+| 3   | Email Notifications                            | Send weekly digests with HTML template + emojis                                         | ✅ **Complete** | —      |
+| 4   | Automation & Scheduling                        | GitHub Actions weekly pipeline                                                          | ✅ **Complete** | —      |
+| 5   | PDF Profile Extraction                         | Extract job profile from CV/PDF with Gemini AI                                          | ✅ **Complete** | #7 ✅  |
+| 6   | ~~Supabase Database Integration~~ (IPv6 block) | 🔴 **Cancelado** → reemplazado por Fase 8                                               | #9 🔁 #10       |
+| 7   | Frontend UI Dashboard                          | React SPA for pipeline management                                                       | ✅ **Complete** | #8 ✅  |
+| 8   | **Refactor: Almacenamiento Local JSON**        | Reemplazar Prisma + Supabase por archivos JSON locales, 0 config de DB                  | ✅ **Complete** | #14 ✅ |
+| 9   | **Jina Reader Fallback Scraper**               | Headless Chrome fallback via Jina Reader para LinkedIn, Indeed, Glassdoor, Computrabajo | ✅ **Complete** | #20 ✅ |
 
 ---
 
@@ -27,14 +27,14 @@
 
 **Sources:**
 
-| Scraper      | Type               | Status              | Notes                                                                          |
-| ------------ | ------------------ | ------------------- | ------------------------------------------------------------------------------ |
-| JSearch API  | REST API           | ✅ **Working**      | ~10 jobs per run, free tier                                                    |
-| Computrabajo | Python (Scrapling) | ✅ **Working**      | ~10 jobs per run                                                               |
-| Indeed       | Python (Scrapling) | ⚠️ **Intermittent** | 403/blocking, fallback graceful                                                |
-| LinkedIn     | Python (Scrapling) | ⚠️ **Intermittent** | Login wall/rate limits                                                         |
-| Glassdoor    | Python (Scrapling) | ⚠️ **Intermittent** | Anti-bot measures                                                              |
-| Jina Reader  | Headless Chrome    | ✅ **Fallback**     | Computrabajo: ✅ 5 jobs/test<br>LinkedIn: ❌ 451 cloud<br>Indeed: ❌ 403 cloud |
+| Scraper      | Type               | Status              | Notes                                                                                                             |
+| ------------ | ------------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| JSearch API  | REST API           | ✅ **Working**      | ~10 jobs per run, free tier                                                                                       |
+| Computrabajo | Python (Scrapling) | ✅ **Working**      | ~10 jobs per run                                                                                                  |
+| Indeed       | Python (Scrapling) | ⚠️ **Intermittent** | 403/blocking, fallback graceful                                                                                   |
+| LinkedIn     | Python (Scrapling) | ⚠️ **Intermittent** | Login wall/rate limits                                                                                            |
+| Glassdoor    | Python (Scrapling) | ⚠️ **Intermittent** | Anti-bot measures                                                                                                 |
+| Jina Reader  | Headless Chrome    | ✅ **Fallback**     | Computrabajo: ✅ 6+ jobs<br>LinkedIn: ❌ 451 cloud / ✅ 10 self-hosted<br>Indeed: ❌ 403 cloud / ⚠️ 2 self-hosted |
 
 **Features:**
 
@@ -249,14 +249,16 @@ src/lib/local-data/
 
 ## Issues Overview
 
-| #      | Title                                | State                               | Phase   |
-| ------ | ------------------------------------ | ----------------------------------- | ------- |
-| **10** | [REFACTOR] Almacenamiento local JSON | 🟢 **Open**                         | Phase 8 |
-| **9**  | [BACKEND] Integración Supabase       | 🔵 **Closed** (reemplazado por #10) | Phase 6 |
-| **8**  | [FEATURE] Frontend UI Dashboard      | 🔵 **Closed** ✅                    | Phase 7 |
-| **9**  | [FEATURE] Jina Reader fallback       | ✅ **Implemented**                  | Phase 1 |
-| **7**  | [FEATURE] AI PDF profile extraction  | 🔵 **Closed** ✅                    | Phase 5 |
-| **6**  | [DEFERRED] process-cv pipeline       | 🔵 **Closed** — absorbed            | Phase 6 |
+| #      | Title                                | State                                  | Phase   |
+| ------ | ------------------------------------ | -------------------------------------- | ------- |
+| #      | Title                                | State                                  | Phase   |
+| ------ | ------------------------------------ | -------------------------------------- | ------- |
+| **14** | [REFACTOR] Almacenamiento local JSON | 🔵 **Closed** (reemplazado Supabase)   | Phase 8 |
+| **20** | [FEATURE] Jina Reader fallback       | 🔵 **Closed** ✅ (tests + integración) | Phase 9 |
+| **9**  | [BACKEND] Integración Supabase       | 🔵 **Closed** (reemplazado por #14)    | Phase 6 |
+| **8**  | [FEATURE] Frontend UI Dashboard      | 🔵 **Closed** ✅                       | Phase 7 |
+| **7**  | [FEATURE] AI PDF profile extraction  | 🔵 **Closed** ✅                       | Phase 5 |
+| **6**  | [DEFERRED] process-cv pipeline       | 🔵 **Closed** — absorbed               | Phase 6 |
 
 ---
 
@@ -299,7 +301,22 @@ src/lib/local-data/
 | CI/CD    | GitHub Actions (weekly + push)                    | ✅                   |
 | Storage  | Local JSON files (`data/database.json`)           | ✅ **Refactorizado** |
 | Frontend | Next.js · Tailwind CSS · Framer Motion · Recharts | ✅ **Complete**      |
+| Fallback | Jina Reader Headless Chrome (Docker)              | ✅ **Implemented**   |
 
 ---
 
 _Maintained by AI assistant — last updated 2026-07-15_
+
+## Complete Phases
+
+| #   | Phase                                   | Status       | Issues |
+| --- | --------------------------------------- | ------------ | ------ |
+| 1   | Job Board Scraper                       | ✅ Complete  | —      |
+| 2   | AI Job Matching                         | ✅ Complete  | —      |
+| 3   | Email Notifications                     | ✅ Complete  | —      |
+| 4   | Automation & Scheduling                 | ✅ Complete  | —      |
+| 5   | PDF Profile Extraction                  | ✅ Complete  | #7 ✅  |
+| 7   | Frontend UI Dashboard                   | ✅ Complete  | #8 ✅  |
+| 8   | Local JSON Storage (0 config DB)        | ✅ Complete  | #14 ✅ |
+| 9   | **Jina Reader Chrome Fallback Scraper** | ✅ Complete  | #20 ✅ |
+| 6   | ~~Supabase Database~~                   | 🔴 Cancelled | #9 🔁  |

@@ -131,6 +131,25 @@ function parseLinkedInMarkdown(markdown: string): Partial<Job>[] {
     }
   }
 
+  // Strategy 3: Self-hosted Jina Reader format
+  // When running Jina Reader locally (Docker), the output format differs from the cloud version.
+  // Self-hosted returns the actual LinkedIn page content in this format:
+  //
+  // * [Software Engineer, New Grad](URL)![Image] ### Software Engineer, New Grad
+  //   #### [Company Name](Company URL)
+  //   Location, State X weeks ago
+  //
+  if (jobs.length === 0) {
+    const selfHostedJobs = parseSelfHostedLinkedIn(markdown);
+    for (const job of selfHostedJobs) {
+      const jobKey = `${job.title}|${job.company || ''}`.toLowerCase();
+      if (!seen.has(jobKey)) {
+        seen.add(jobKey);
+        jobs.push(job);
+      }
+    }
+  }
+
   return jobs;
 }
 
@@ -192,6 +211,50 @@ function parseIndeedMarkdown(markdown: string): Partial<Job>[] {
     }
   }
 
+  // Strategy 3: Self-hosted Indeed format
+  // When running Jina Reader locally, Indeed headings use ## [Title](link) format
+  // with company name on the next line, e.g.:
+  //
+  // ## [Software Engineer](url)
+  // CompanyName Location
+  //
+  if (jobs.length === 0) {
+    const headingBlocks = markdown.split(/(?=^##\s)/m);
+    for (const block of headingBlocks) {
+      if (!block.trim()) continue;
+
+      const title = extractTitle(block);
+      if (!title) continue;
+
+      // Extract company from the line immediately after the heading
+      const company = extractCompanyFromNextLine(block);
+      if (!company) continue;
+
+      const location = extractField(block, 'location') || extractLocationFromLine(block);
+      const salary = extractSalary(block);
+      const link = extractLink(block);
+
+      const jobKey = `${title}|${company}`.toLowerCase();
+      if (seen.has(jobKey)) continue;
+      seen.add(jobKey);
+
+      const job: Partial<Job> = {
+        title,
+        company,
+        location: location || '',
+        link: link || '',
+        description: '',
+        source: 'indeed',
+      };
+
+      if (salary) {
+        (job as Record<string, unknown>).salary = salary;
+      }
+
+      jobs.push(job);
+    }
+  }
+
   return jobs;
 }
 
@@ -201,6 +264,13 @@ function parseIndeedMarkdown(markdown: string): Partial<Job>[] {
  * Extract job title from a block — first `##` heading or first bold line.
  */
 function extractTitle(text: string): string | null {
+  // ## [Title](url) — heading with markdown link (common in self-hosted Jina Reader output)
+  const headingLinkMatch = text.match(/^##\s*\[([^\]]+)\]\([^)]+\)/m);
+  if (headingLinkMatch) {
+    const title = headingLinkMatch[1].trim();
+    if (isValidTitle(title)) return title;
+  }
+
   // ## Title (most common in Jina Reader output)
   const headingMatch = text.match(/^##\s+(.+?)(?:\n|$)/m);
   if (headingMatch) {
@@ -331,6 +401,55 @@ function extractAfterPrefix(text: string, prefixes: string[]): string | null {
       }
     }
   }
+  return null;
+}
+
+/**
+ * Extract company name from the line immediately following a `##` heading.
+ * Used for self-hosted Indeed format where company is on its own line:
+ *
+ * ## [Software Engineer](link)
+ * CompanyName Hybrid work in City, State
+ */
+function extractCompanyFromNextLine(text: string): string | null {
+  const lines = text.split('\n').filter((l) => l.trim());
+
+  // Find the heading line and look at the next non-empty line
+  let foundHeading = false;
+  for (const line of lines) {
+    if (!foundHeading) {
+      if (line.startsWith('##')) {
+        foundHeading = true;
+      }
+      continue;
+    }
+
+    // This is the line after the heading
+    const trimmed = line.trim();
+
+    // Skip if it's another heading, bullet point, or empty
+    if (trimmed.startsWith('#') || trimmed.startsWith('*') || trimmed.startsWith('-')) continue;
+
+    // Try to extract company name: take text before location/remote/hybrid keywords
+    // Format: "CompanyName Location" or "CompanyName Hybrid work in City"
+    const companyMatch = trimmed.match(
+      /^([A-Z][A-Za-z0-9&.\s'-]+?)(?:\s+(?:[-–]|Hybrid|Remote|Remoto|Onsite|Presencial|in|en)\s|,|$)/,
+    );
+    if (companyMatch) {
+      const company = companyMatch[1].trim();
+      if (company.length > 1 && company.length < 60) return company;
+    }
+
+    // Fallback: take the first 1-3 capitalized words as the company name
+    const words = trimmed.match(/^([A-Z][a-zA-Z0-9&.]+(?:\s+[A-Z][a-zA-Z0-9&.']+){0,2})/);
+    if (words) {
+      const company = words[1].trim();
+      if (company.length > 1 && company.length < 40) return company;
+    }
+
+    break;
+  }
+
   return null;
 }
 
@@ -825,6 +944,102 @@ function extractGlassdoorRating(text: string): string | null {
   }
 
   return null;
+}
+
+// ─── Parser: Self-Hosted LinkedIn ───────────────────────────────────────────
+
+/**
+ * Parse LinkedIn job search results from self-hosted Jina Reader markdown.
+ *
+ * When Jina Reader runs locally via Docker, it returns the actual rendered page
+ * content rather than a simplified API response. The format differs:
+ *
+ * * [Software Engineer, New Grad](URL)![Image](url) ### Software Engineer, New Grad
+ *   #### [Company Name](Company URL)
+ *   Location, State X weeks ago
+ *   Be an early applicant
+ *
+ * The job title is a markdown link in a bullet item, followed by the company
+ * as a level-4 heading link, and location/time as plain text.
+ */
+function parseSelfHostedLinkedIn(markdown: string): Partial<Job>[] {
+  const jobs: Partial<Job>[] = [];
+  const seen = new Set<string>();
+
+  // Split by bullet items that start with * [ (markdown link)
+  // Each block starts with * [Title] and includes the next few lines
+  const lines = markdown.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Look for * [Job Title](url) pattern
+    const titleMatch = line.match(/^\s*\*\s*\[([^\]]+)\]\(([^)]+)\)/);
+    if (!titleMatch) continue;
+
+    const title = titleMatch[1].trim();
+    const link = titleMatch[2].trim();
+
+    // Skip non-job titles
+    if (!isValidTitle(title)) continue;
+
+    // Look ahead for company in #### [Company Name](url)
+    let company = '';
+    let location = '';
+
+    for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+      const nextLine = lines[j].trim();
+
+      if (!nextLine) continue;
+
+      // Company: #### [Company Name](url)
+      const companyMatch = nextLine.match(/^####\s*\[([^\]]+)\]\([^)]+\)/);
+      if (companyMatch && !company) {
+        company = companyMatch[1].trim();
+        continue;
+      }
+
+      // Location: plain text that looks like a location (starts with city name)
+      if (!location && !nextLine.startsWith('*') && !nextLine.startsWith('#')) {
+        // Check if it looks like location text
+        const locMatch = nextLine.match(
+          /^([A-Z][a-zA-ZáéíóúñÁÉÍÓÚÑ]+(?:[.,\s]+[A-Za-záéíóúñÁÉÍÓÚÑ.]+){0,4}(?:\s+\d+\s+(hours?|days?|weeks?|months?|years?)\s+ago)?)/,
+        );
+        if (locMatch) {
+          // Extract just the location part (remove time ago)
+          const raw = locMatch[1].trim();
+          const timeAgoMatch = raw.match(
+            /^(.+?)\s+\d+\s+(hours?|days?|weeks?|months?|years?)\s+ago/i,
+          );
+          location = timeAgoMatch ? timeAgoMatch[1].trim() : raw;
+        }
+        // Also catch "Remote" or "United States" standalone
+        if (!location) {
+          const remoteMatch = nextLine.match(/^(Remote|United States|\w+\s+Remote)/i);
+          if (remoteMatch) {
+            location = remoteMatch[1].trim();
+          }
+        }
+      }
+    }
+
+    if (!company) continue; // Must have a company
+
+    const jobKey = `${title}|${company}`.toLowerCase();
+    if (seen.has(jobKey)) continue;
+    seen.add(jobKey);
+
+    jobs.push({
+      title,
+      company,
+      location,
+      link,
+      description: '',
+      source: 'linkedin',
+    });
+  }
+
+  return jobs;
 }
 
 // ─── JinaReaderScraper Class ───────────────────────────────────────────────
