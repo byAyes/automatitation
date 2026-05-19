@@ -129,9 +129,51 @@ docker run --rm -d -p 3000:8081 --name seahorse-jina-reader ghcr.io/jina-ai/read
 # For caching, configure S3 bucket env vars in docker-compose.yml.
 ```
 
+### Integration with ScraperRunner (Fallback Flow)
+
+When `JINA_READER_BASE_URL` is set, `ScraperRunner` (`src/scrapers/index.ts`) automatically:
+
+1. Runs primary scrapers (JSearch, Python Scrapling)
+2. Calls `identifyFailedSources()` — checks which scrapers returned 0 jobs
+3. For each failed source, fires `JinaReaderScraper.scrape()` with the same query
+4. New jobs are merged into `allJobs`, deduplicating by `title|company` key
+
+### Test Results (Integration)
+
+| Test                                               | Tests   | Result                     |
+| -------------------------------------------------- | ------- | -------------------------- |
+| Unit tests (jinaReader.test.ts)                    | 19      | ✅ All pass                |
+| Integration tests (jinaReader.integration.test.ts) | 40      | ✅ All pass                |
+| **Total test suite**                               | **109** | **✅ 6 suites / 109 pass** |
+
+| Endpoint / Source                     | Result | Detail                          |
+| ------------------------------------- | ------ | ------------------------------- |
+| `r.jina.ai` → Computrabajo (cloud)    | ✅     | 5 jobs, rate-limit recoverable  |
+| `r.jina.ai` → Glassdoor (cloud)       | ⚠️     | Rate-limited, OK with self-host |
+| `r.jina.ai` → LinkedIn (cloud)        | ❌ 451 | Blocked legally by Jina Reader  |
+| `r.jina.ai` → Indeed (cloud)          | ❌ 403 | Cloudflare challenge            |
+| **Self-hosted Docker** → Computrabajo | ✅     | Works with own IP               |
+
+### CI Integration
+
+The `JINA_READER_BASE_URL` env var is configured as an **optional secret** in `.github/workflows/main.yml`. When set, the pipeline runs Jina Reader fallback automatically. When unset, the fallback is skipped gracefully — no errors.
+
+To enable Jina Reader fallback in CI:
+
+1. Deploy Jina Reader Docker container (see Self-Hosting above)
+2. Set `JINA_READER_BASE_URL` in GitHub repo Secrets
+3. The next workflow run will use it
+
+### Computrabajo Configuration
+
+| Env Var                 | Default                              | Description                                       |
+| ----------------------- | ------------------------------------ | ------------------------------------------------- |
+| `COMPUTRABAJO_COUNTRY`  | `co`                                 | Country code (`co`, `mx`, `ar`, `cl`, `pe`, `ec`) |
+| `COMPUTRABAJO_BASE_URL` | `https://{country}.computrabajo.com` | Full base URL override                            |
+
 ### Usage
 
-Set the `JINA_READER_BASE_URL` env var to point to your self-hosted instance:
+Set the `JINA_READER_BASE_URL` env var:
 
 ```bash
 # Local self-hosted instance (via docker-compose)
@@ -149,24 +191,10 @@ JINA_READER_BASE_URL=http://localhost:3001 npx tsx src/scrapers/strategies/jinaR
 
 # Test with default cloud instance
 npx tsx src/scrapers/strategies/jinaReader.ts computrabajo "ingeniero software" 5
+
+# Test the pipeline fallback flow
+npx tsx src/scrapers/index.ts "desarrollador" 5
 ```
-
-### Computrabajo Configuration
-
-| Env Var                 | Default                              | Description                                       |
-| ----------------------- | ------------------------------------ | ------------------------------------------------- |
-| `COMPUTRABAJO_COUNTRY`  | `co`                                 | Country code (`co`, `mx`, `ar`, `cl`, `pe`, `ec`) |
-| `COMPUTRABAJO_BASE_URL` | `https://{country}.computrabajo.com` | Full base URL override                            |
-
-### Test Results
-
-| Endpoint                       | Result | Detail                         |
-| ------------------------------ | ------ | ------------------------------ |
-| `r.jina.ai` → LinkedIn         | ❌ 451 | Blocked legally by Jina Reader |
-| `r.jina.ai` → Indeed           | ❌ 403 | Cloudflare challenge           |
-| `r.jina.ai` → Google           | ⚠️ 429 | Google CAPTCHA                 |
-| `s.jina.ai` (Search)           | ❌ 401 | Requires API key               |
-| **Self-hosted** → Computrabajo | ✅     | Should work with own IP        |
 
 ## CI (GitHub Actions)
 
@@ -175,10 +203,15 @@ npx tsx src/scrapers/strategies/jinaReader.ts computrabajo "ingeniero software" 
 - **Email:** SMTP via Gmail App Password secrets
 - **Python deps:** Installed at runtime via `pip install -r scrapers/requirements.txt`
 - **Browser:** Chrome/Chromium installed for Scrapling StealthyFetcher
+- **Jina Reader:** Optional fallback via `JINA_READER_BASE_URL` secret
 
 ### Required CI Secrets
 
 `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `GMAIL_RECIPIENT`, `EMAIL_CC`, `JSEARCH_API_KEY`
+
+### Optional CI Secrets
+
+`JINA_READER_BASE_URL` — Self-hosted Jina Reader instance URL (e.g., `http://localhost:3001`)
 
 ## Open Issues
 
@@ -190,10 +223,25 @@ npx tsx src/scrapers/strategies/jinaReader.ts computrabajo "ingeniero software" 
 
 | #   | Title                     | Resolution                          |
 | --- | ------------------------- | ----------------------------------- |
-| 7   | AI PDF profile extraction | ✅ Implemented and working          |
 | 6   | process-cv pipeline       | ✅ Absorbed into #7 + #9            |
+| 7   | AI PDF profile extraction | ✅ Implemented and working          |
 | 8   | Frontend UI Dashboard     | ✅ Completado                       |
 | 9   | Integración Supabase      | 🔁 Reemplazado por #14 (local JSON) |
+| 20  | Jina Reader fallback      | ✅ Implementado + tests integración |
+
+## Test Suite
+
+```bash
+# Run all tests
+npm test
+# Expected: 6 suites, 109+ tests passing
+
+# Run Jina Reader integration tests (40 tests)
+npx jest tests/jinaReader.integration.test.ts --verbose
+
+# Run Jina Reader unit tests (19 tests)
+npx jest tests/jinaReader.test.ts --verbose
+```
 
 ## Recent Fixes
 

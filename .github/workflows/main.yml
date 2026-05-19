@@ -47,6 +47,9 @@ jobs:
       # Job Search
       JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
 
+      # Jina Reader Fallback (optional — self-hosted)
+      JINA_READER_BASE_URL: ${{ secrets.JINA_READER_BASE_URL }}
+
       # AI Matching
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
