@@ -179,6 +179,29 @@ JINA_READER_BASE_URL=http://localhost:3001 npx tsx src/scrapers/index.ts "desarr
 - Upload page: drag-and-drop CV with AI processing preview
 - Dark/light mode + multilingual (EN/ES/PT/FR/DE)
 
+### REST API
+
+Full API reference at [`docs/API.md`](docs/API.md). Quick overview:
+
+| Endpoint               | Method | Description                                         |
+| ---------------------- | :----: | --------------------------------------------------- |
+| `/api/health`          |  GET   | System healthcheck — uptime, env vars, connectivity |
+| `/api/pipeline/run`    |  GET   | Poll pipeline status                                |
+| `/api/pipeline/run`    |  POST  | Start new pipeline execution                        |
+| `/api/stats`           |  GET   | Dashboard statistics                                |
+| `/api/match-jobs`      |  GET   | Jobs scored against profile                         |
+| `/api/cv/upload`       |  POST  | Upload CV PDF                                       |
+| `/api/cv/process`      |  POST  | Extract skills, experience, education from CV       |
+| `/api/profile/extract` |  GET   | Get user profile                                    |
+| `/api/profile/extract` |  POST  | Extract profile from PDF/text                       |
+| `/api/email/send`      |  GET   | Send test email                                     |
+| `/api/email/send`      |  POST  | Send email via configured provider                  |
+| `/api/pdf/upload`      |  POST  | Upload job listing PDF                              |
+| `/api/config/keys`     |  GET   | List configured API keys                            |
+| `/api/config/keys`     |  POST  | Save API keys                                       |
+
+> **Healthcheck** (`GET /api/health`) reports system status: uptime, Node.js version, environment variable configuration (what's set/missing), Jina Reader connectivity, Python scraper config parsing, and ScraperRunner module import status. Returns `200` when healthy, `503` when degraded. No auth required, no rate limiting.
+
 ### Automation
 
 - **Weekly cron** via GitHub Actions (Thu 9 AM UTC)
@@ -265,6 +288,8 @@ seahorse/
 │   ├── indeed.py
 │   ├── linkedin.py
 │   └── requirements.txt
+├── docs/
+│   └── API.md                    # ★ Full REST API reference
 ├── src/
 │   ├── app/
 │   │   ├── (main)/               # Dashboard pages
@@ -274,7 +299,8 @@ seahorse/
 │   │   │   ├── settings/         # Profile, email, API keys, i18n
 │   │   │   ├── upload/           # CV drag & drop
 │   │   │   └── layout.tsx        # Sidebar + header layout
-│   │   └── api/                  # REST API routes
+│   │   └── api/                  # REST API routes (docs/API.md)
+│   │       ├── health/           # GET /api/health — system status
 │   ├── automation/
 │   │   ├── orchestrator.ts       # Pipeline logic
 │   │   ├── scheduler.ts          # Entry point
