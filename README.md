@@ -41,21 +41,18 @@ Upload CV/PDF → Extract profile (AI) → Scrape → Jina Reader fallback → M
 
 ### Installation
 
-#### ⚡ One-command setup (Windows/PowerShell)
+#### Windows / PowerShell
 
 **Opción A — Una línea (automático):**
 
 ```powershell
-# Abre PowerShell y pega esto — descarga y ejecuta el setup:
 irm https://raw.githubusercontent.com/byAyes/SeaHorse/main/scripts/setup.ps1 | iex
 ```
 
 **Opción B — Descargar y ejecutar (recomendado):**
 
 ```powershell
-# 1. Descarga el script:
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/byAyes/SeaHorse/main/scripts/setup.ps1" -OutFile "setup.ps1"
-# 2. Ejecútalo:
 .\setup.ps1
 ```
 
@@ -66,7 +63,21 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/byAyes/SeaHorse/main/s
 .\scripts\run.ps1
 ```
 
-> **Nota:** `run.ps1` es interactivo (menú con opciones). Se recomienda descargarlo y ejecutarlo localmente en vez de pipe por `iex`.
+#### Linux / macOS
+
+```bash
+# Clonar manualmente (setup.sh próximamente):
+git clone https://github.com/byAyes/SeaHorse.git
+cd SeaHorse
+
+# Ejecutar el pipeline interactivo:
+./scripts/run.sh
+
+# O directamente a un modo específico:
+./scripts/run.sh --dashboard
+./scripts/run.sh --basic
+./scripts/run.sh --cv ~/Downloads/CV.pdf
+```
 
 #### Manual
 
