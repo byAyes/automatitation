@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     SeaHorse — Runner automatizado (pipeline completo / básico / dashboard)
 .DESCRIPTION
@@ -76,9 +76,16 @@ try {
     exit 1
 }
 
-# Carpeta del proyecto (donde está este script)
+# Carpeta del proyecto
+# Si el script está en scripts/, el project root es el padre.
+# Si está suelto (descarga standalone), el project root es su mismo directorio.
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectRoot = Resolve-Path "$ScriptRoot\.."
+$ScriptDirName = Split-Path -Leaf $ScriptRoot
+if ($ScriptDirName -eq 'scripts') {
+    $ProjectRoot = Resolve-Path "$ScriptRoot\.."
+} else {
+    $ProjectRoot = $ScriptRoot
+}
 Push-Location $ProjectRoot
 Write-OK "Directorio: $ProjectRoot"
 
